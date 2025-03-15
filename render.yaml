@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: tweetx-backend
+    env: python
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: API_V1_STR
+        value: /api/v1
+      - key: PROJECT_NAME
+        value: TweetX
+      - key: DEBUG
+        value: false
+      - key: CORS_ORIGINS
+        value: https://tweetx-frontend.vercel.app,https://tweetx.vercel.app
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: tweetx-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: tweetx-redis
+          property: port
+      - key: REDIS_PASSWORD
+        fromService:
+          type: redis
+          name: tweetx-redis
+          property: password
+      - key: REDIS_DB
+        value: 0
+      - key: REDIS_CACHE_EXPIRE
+        value: 900
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: tweetx-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: tweetx-redis
+          property: connectionString
+      - key: PORT
+        value: 8000
+
+  - type: redis
+    name: tweetx-redis
+    ipAllowList: [] # Only allow internal connections
+    plan: free # Use the free plan

@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = os.getenv("PROJECT_NAME", "TweetX")
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     
+    # CORS settings
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "")  # Comma-separated list of allowed origins
+    
     # Redis settings
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))

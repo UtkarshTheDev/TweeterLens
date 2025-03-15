@@ -14,9 +14,23 @@ app = FastAPI(
 )
 
 # Set up CORS
+# Define allowed origins
+allowed_origins = [
+    "http://localhost:3000",  # Local development
+    "https://tweetx-frontend.vercel.app",  # Vercel default domain
+    "https://tweetx.vercel.app",  # Vercel subdomain
+]
+
+# In development mode, allow all origins
+if settings.DEBUG:
+    allowed_origins = ["*"]
+# Add any custom domains from environment variable
+elif settings.CORS_ORIGINS:
+    allowed_origins.extend(settings.CORS_ORIGINS.split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers

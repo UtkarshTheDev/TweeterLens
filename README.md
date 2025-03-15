@@ -1,4 +1,4 @@
-# TweetX - Twitter (X) Contribution & Engagement Tracker
+# TweetX - X Contribution & Engagement Tracker
 
 TweetX is a comprehensive tool that analyzes Twitter (X) activity and provides detailed statistics and visualizations similar to GitHub's contribution graph. It consists of a Next.js frontend for interactive visualizations and a FastAPI backend for data processing.
 
