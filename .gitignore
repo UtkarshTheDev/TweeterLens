@@ -78,3 +78,6 @@ temp/
 
 # Fly.io
 .fly/ 
+
+# docs
+docs/

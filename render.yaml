@@ -2,6 +2,7 @@ services:
   - type: web
     name: tweetx-backend
     env: python
+    plan: free # Explicitly specify free plan
     buildCommand: cd backend && pip install -r requirements.txt
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -13,39 +14,17 @@ services:
         value: false
       - key: CORS_ORIGINS
         value: https://tweetx-frontend.vercel.app,https://tweetx.vercel.app
+      # Instead of using Redis service, we'll use the free Redis database from Upstash
       - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: tweetx-redis
-          property: host
+        value: localhost # Will be overridden in production
       - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: tweetx-redis
-          property: port
-      - key: REDIS_CONNECTION_STRING
-        fromService:
-          type: redis
-          name: tweetx-redis
-          property: connectionString
+        value: 6379 # Will be overridden in production
       - key: REDIS_DB
         value: 0
       - key: REDIS_CACHE_EXPIRE
         value: 900
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: tweetx-redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          type: redis
-          name: tweetx-redis
-          property: connectionString
       - key: PORT
         value: 8000
-
-  - type: redis
-    name: tweetx-redis
-    ipAllowList: [] # Only allow internal connections
-    plan: free # Use the free plan
+# Note: We're removing the Redis service since it might require payment information
+# Instead, you can use a free Redis service like Upstash (https://upstash.com/)
+# After deploying, you'll need to manually set the Redis connection details in the Render dashboard
