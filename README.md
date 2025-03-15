@@ -2,8 +2,6 @@
 
 TweetX is a comprehensive tool that analyzes Twitter (X) activity and provides detailed statistics and visualizations similar to GitHub's contribution graph. It consists of a Next.js frontend for interactive visualizations and a FastAPI backend for data processing.
 
-![TweetX Banner](https://via.placeholder.com/1200x300/0077b6/ffffff?text=TweetX)
-
 ## 🌟 Features
 
 ### 📊 Contribution Graph (GitHub-Style for X Posts)

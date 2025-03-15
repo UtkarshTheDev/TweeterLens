@@ -57,9 +57,10 @@ If you prefer to deploy services manually:
    - `API_V1_STR`: `/api/v1`
    - `PROJECT_NAME`: `TweetX`
    - `DEBUG`: `false`
+   - `CORS_ORIGINS`: Your frontend domains (e.g., `https://tweetx-frontend.vercel.app,https://tweetx.vercel.app`)
    - `REDIS_HOST`: Your Redis host (from Step 1)
    - `REDIS_PORT`: Your Redis port (from Step 1)
-   - `REDIS_PASSWORD`: Your Redis password (from Step 1)
+   - `REDIS_CONNECTION_STRING`: Your Redis connection string (from Step 1)
    - `REDIS_DB`: `0`
    - `REDIS_CACHE_EXPIRE`: `900`
    - `CELERY_BROKER_URL`: Your Redis connection string (from Step 1)
