@@ -99,10 +99,6 @@ The backend can be deployed to various platforms:
 
 We provide a `render.yaml` Blueprint for easy deployment to Render.com. See [backend/RENDER_DEPLOYMENT.md](backend/RENDER_DEPLOYMENT.md) for detailed instructions.
 
-#### Fly.io
-
-For deployment to Fly.io, we provide configuration files and a deployment script. See [backend/FLY_DEPLOYMENT.md](backend/FLY_DEPLOYMENT.md) for detailed instructions.
-
 ### Frontend Deployment
 
 The frontend can be deployed to platforms like Vercel, Netlify, or any static hosting service.
