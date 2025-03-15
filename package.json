@@ -1,0 +1,33 @@
+{
+  "name": "tweetx",
+  "version": "1.0.0",
+  "description": "Twitter (X) Contribution & Engagement Tracker",
+  "private": true,
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && uvicorn app.main:app --reload",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "install:frontend": "cd frontend && npm install",
+    "install:all": "npm install && npm run install:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "start:frontend": "cd frontend && npm start",
+    "lint:frontend": "cd frontend && npm run lint"
+  },
+  "workspaces": [
+    "frontend"
+  ],
+  "keywords": [
+    "twitter",
+    "x",
+    "analytics",
+    "contribution",
+    "engagement",
+    "fastapi",
+    "nextjs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

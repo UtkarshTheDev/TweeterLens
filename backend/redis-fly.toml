@@ -1,0 +1,21 @@
+app = "tweetx-redis"
+primary_region = "sin"  # Singapore region, same as your backend
+
+[build]
+  image = "flyio/redis:6.2.6"
+
+[env]
+  REDIS_ARGS = "--requirepass ${REDIS_PASSWORD}"
+
+[[mounts]]
+  source = "redis_data"
+  destination = "/data"
+
+[metrics]
+  port = 9091
+  path = "/metrics"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512 
