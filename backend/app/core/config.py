@@ -1,6 +1,12 @@
 import os
 import re
-from pydantic import BaseSettings
+# Fix for Pydantic v2.4+ where BaseSettings has been moved
+try:
+    # Try importing from pydantic-settings (for Pydantic v2.4+)
+    from pydantic_settings import BaseSettings
+except ImportError:
+    # Fallback to old import path (for Pydantic < v2.4)
+    from pydantic import BaseSettings
 from dotenv import load_dotenv
 
 # Load environment variables from .env file

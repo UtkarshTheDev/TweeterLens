@@ -22,6 +22,8 @@ async def get_twitter_stats(request: TwitterUsernameRequest) -> Dict[str, Any]:
     - **limit**: Maximum number of tweets to fetch (default: 1000)
     
     Returns all stats including contribution graph, engagement metrics, and hashtags/mentions analysis.
+    
+    Note: If Twitter data cannot be fetched due to API limitations, mock data will be provided.
     """
     try:
         # Clean username
@@ -62,6 +64,8 @@ async def refresh_twitter_stats(request: TwitterUsernameRequest) -> Dict[str, An
     - **limit**: Maximum number of tweets to fetch (default: 1000)
     
     Returns freshly fetched stats.
+    
+    Note: If Twitter data cannot be fetched due to API limitations, mock data will be provided.
     """
     try:
         # Clean username

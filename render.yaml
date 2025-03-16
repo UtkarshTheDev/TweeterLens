@@ -3,7 +3,7 @@ services:
     name: tweetx-backend
     env: python
     plan: free # Explicitly specify free plan
-    buildCommand: cd backend && pip install -r requirements.txt
+    buildCommand: cd backend && pip install -r requirements.txt && pip install pydantic-settings
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: API_V1_STR

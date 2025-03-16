@@ -4,6 +4,7 @@ redis==5.0.1
 snscrape==0.7.0.20230622
 python-dotenv==1.0.0
 pydantic==2.4.2
+pydantic-settings==2.0.3
 httpx==0.25.0
 nltk==3.8.1
 pandas==2.1.1

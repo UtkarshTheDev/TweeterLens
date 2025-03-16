@@ -59,4 +59,5 @@ class TwitterStatsResponse(BaseModel):
     engagement: EngagementStats = Field(..., description="Engagement metrics stats")
     hashtags_mentions: HashtagsMentionsStats = Field(..., description="Hashtags and mentions analysis")
     total_tweets: int = Field(..., description="Total number of tweets analyzed")
-    date_range: Dict[str, str] = Field(..., description="Date range of analyzed tweets") 
+    date_range: Dict[str, str] = Field(..., description="Date range of analyzed tweets")
+    is_mock_data: bool = Field(False, description="Indicates if the data is mock data due to Twitter API limitations") 

@@ -22,6 +22,7 @@ class TwitterAnalyzer:
     
     def __init__(self, tweets_data: List[Dict[str, Any]] = None):
         self.fetcher = TwitterFetcher()
+        self.is_mock_data = False
         if tweets_data:
             self.tweets = tweets_data
             self.df = pd.DataFrame(tweets_data)
@@ -32,6 +33,13 @@ class TwitterAnalyzer:
     def load_tweets(self, username: str, limit: int = 1000):
         """Load tweets for a username"""
         self.tweets = self.fetcher.fetch_user_tweets(username, limit)
+        
+        # Check if we're using mock data (simple heuristic)
+        # If all tweet IDs are very large random numbers, it's likely mock data
+        if self.tweets and all(tweet['id'] > 1000000000000000000 for tweet in self.tweets):
+            self.is_mock_data = True
+            logger.info(f"Using mock data for {username}")
+        
         if self.tweets:
             self.df = pd.DataFrame(self.tweets)
             # Convert date to datetime if it's not already
@@ -75,7 +83,8 @@ class TwitterAnalyzer:
                 "date_range": {
                     "start": self.df['date'].min().isoformat(),
                     "end": self.df['date'].max().isoformat()
-                }
+                },
+                "is_mock_data": self.is_mock_data
             }
             
             return all_stats
