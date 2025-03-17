@@ -1,83 +1,41 @@
-# Dependencies
-node_modules/
-__pycache__/
-*.py[cod]
-*$py.class
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.venv
-env/
-venv/
-ENV/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Build outputs
-.next/
-build/
-dist/
-out/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Cache
-.cache/
-.npm
-.eslintcache
-.pytest_cache/
-.parcel-cache
+# testing
+/coverage
 
-# Logs
-logs
-*.log
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+.pnpm-debug.log*
 
-# Editor directories and files
-.idea/
-.vscode/
-*.swp
-*.swo
-.DS_Store
-Thumbs.db
+# env files (can opt-in for committing if needed)
+.env*
 
-# Python specific
-*.so
-.Python
-develop-eggs/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Redis
-dump.rdb
-
-# Deployment
+# vercel
 .vercel
-.netlify
 
-# Testing
-coverage/
-.coverage
-htmlcov/
-.nyc_output
-
-# Temporary files
-tmp/
-temp/
-
-# Fly.io
-.fly/ 
-
-# docs
-docs/
+# typescript
+*.tsbuildinfo
+next-env.d.ts

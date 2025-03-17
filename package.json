@@ -1,33 +1,42 @@
 {
   "name": "tweetx",
-  "version": "1.0.0",
-  "description": "Twitter (X) Contribution & Engagement Tracker",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
-    "frontend": "cd frontend && npm run dev",
-    "backend": "cd backend && uvicorn app.main:app --reload",
-    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
-    "install:frontend": "cd frontend && npm install",
-    "install:all": "npm install && npm run install:frontend",
-    "build:frontend": "cd frontend && npm run build",
-    "start:frontend": "cd frontend && npm start",
-    "lint:frontend": "cd frontend && npm run lint"
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
-  "workspaces": [
-    "frontend"
-  ],
-  "keywords": [
-    "twitter",
-    "x",
-    "analytics",
-    "contribution",
-    "engagement",
-    "fastapi",
-    "nextjs"
-  ],
-  "author": "",
-  "license": "MIT",
+  "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.3",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@shadcn/ui": "^0.0.4",
+    "@tailwindcss/postcss": "^4.0.14",
+    "@tanstack/react-query": "^5.68.0",
+    "@upstash/redis": "^1.34.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.5.0",
+    "lucide-react": "^0.482.0",
+    "motion": "^12.5.0",
+    "next": "15.2.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7"
+  },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.2",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.0.14",
+    "typescript": "^5"
   }
 }
