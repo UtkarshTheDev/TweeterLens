@@ -1,47 +1,9 @@
 import { NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_URL!,
-  token: process.env.UPSTASH_REDIS_TOKEN!,
-});
-
-const API_KEY = process.env.SOCIALDATA_API_KEY;
-
-// Function to fetch tweets from Twitter API
-async function fetchTweets(username: string) {
-  const query = `from:${username}`;
-
-  try {
-    const response = await fetch(
-      `https://api.socialdata.tools/twitter/search?query=${encodeURIComponent(
-        query
-      )}&type=Latest`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          Accept: "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.error(`API error: ${response.status} ${response.statusText}`);
-      throw new Error(`Failed to fetch tweets: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Log the response structure for debugging
-    console.log(`Fetched ${data.tweets?.length || 0} tweets for ${username}`);
-
-    return data.tweets || [];
-  } catch (error) {
-    console.error("Error fetching tweets:", error);
-    throw error;
-  }
-}
+import {
+  redis,
+  fetchTweetsFromUser,
+  fetchTwitterProfile,
+} from "@/lib/twitter-utils";
 
 // Generate contribution graph for a specific year
 function generateContributionGraph(tweets: any[], year: number) {
@@ -69,7 +31,7 @@ function generateContributionGraph(tweets: any[], year: number) {
 
   // Count posts for each date
   tweets.forEach((tweet) => {
-    const tweetDate = new Date(tweet.tweet_created_at);
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
 
     // Only count tweets from the specified year
     if (tweetDate.getFullYear() === year) {
@@ -78,21 +40,17 @@ function generateContributionGraph(tweets: any[], year: number) {
     }
   });
 
-  // Find the maximum posts in a day to calculate level percentages
+  // Find the maximum posts in a day for level calculation
   const maxPosts = Math.max(...Object.values(postsByDate), 1);
-
-  // Calculate post counts by day of week and build the contribution grid
-  const contributionGraph = [];
 
   // Get number of days in the year
   const daysInYear =
     year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 366 : 365;
 
-  // Calculate the day of the week for Jan 1st
+  // Calculate the day of the week for Jan 1st (0 = Sunday, 6 = Saturday)
   const firstDayOfYearWeekday = new Date(year, 0, 1).getDay();
 
-  // We need to organize the data in week columns
-  // First, create a flat array of day data
+  // Create a flat array of day data
   const allDays = [];
 
   startDate.setDate(1);
@@ -119,6 +77,9 @@ function generateContributionGraph(tweets: any[], year: number) {
       date: dateFormatter.format(currentDate),
       count,
       level,
+      month: currentDate.getMonth(), // Add month for better alignment
+      day: currentDate.getDate(), // Add day for better tooltip
+      weekday: currentDate.getDay(), // Add weekday for alignment
     });
   }
 
@@ -127,20 +88,32 @@ function generateContributionGraph(tweets: any[], year: number) {
   const numWeeks = Math.ceil((daysInYear + firstDayOfYearWeekday) / 7);
 
   // Create empty weeks
+  const contributionGraph = [];
   for (let w = 0; w < numWeeks; w++) {
     contributionGraph.push(
       Array(7)
         .fill(null)
-        .map(() => ({ count: 0, level: 0, date: "" }))
+        .map(() => ({
+          count: 0,
+          level: 0,
+          date: "",
+          month: -1,
+          day: 0,
+          weekday: 0,
+        }))
     );
   }
 
-  // Fill in the days
-  let dayIndex = 0;
-
   // Add empty cells for days before the first day of the year
   for (let d = 0; d < firstDayOfYearWeekday; d++) {
-    contributionGraph[0][d] = { count: 0, level: 0, date: "" };
+    contributionGraph[0][d] = {
+      count: 0,
+      level: 0,
+      date: "",
+      month: -1,
+      day: 0,
+      weekday: d,
+    };
   }
 
   // Fill in the actual days
@@ -149,18 +122,61 @@ function generateContributionGraph(tweets: any[], year: number) {
     const dayOfWeek = (d + firstDayOfYearWeekday) % 7;
 
     if (weekIndex < numWeeks) {
-      contributionGraph[weekIndex][dayOfWeek] = allDays[d];
+      contributionGraph[weekIndex][dayOfWeek] = {
+        ...allDays[d],
+        weekday: dayOfWeek,
+      };
     }
   }
 
-  return contributionGraph;
+  // Add month range information for improved labeling
+  const monthRanges = [];
+  let currentMonth = -1;
+  let currentMonthStartWeek = -1;
+
+  // Calculate which weeks contain which months
+  for (let w = 0; w < contributionGraph.length; w++) {
+    // Check the first day with valid month data in each week
+    for (let d = 0; d < 7; d++) {
+      const day = contributionGraph[w][d];
+      if (day && day.month >= 0) {
+        if (day.month !== currentMonth) {
+          // If we found a new month, record the previous month's range
+          if (currentMonth >= 0) {
+            monthRanges.push({
+              month: currentMonth,
+              startWeek: currentMonthStartWeek,
+              endWeek: w - 1,
+            });
+          }
+          currentMonth = day.month;
+          currentMonthStartWeek = w;
+        }
+        break;
+      }
+    }
+  }
+
+  // Add the final month
+  if (currentMonth >= 0) {
+    monthRanges.push({
+      month: currentMonth,
+      startWeek: currentMonthStartWeek,
+      endWeek: contributionGraph.length - 1,
+    });
+  }
+
+  return {
+    graph: contributionGraph,
+    monthRanges: monthRanges,
+  };
 }
 
 // Calculate user statistics
 function calculateUserStats(tweets: any[], year: number) {
   // Filter tweets for the specific year
   const yearTweets = tweets.filter((tweet) => {
-    const tweetDate = new Date(tweet.tweet_created_at);
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
     return tweetDate.getFullYear() === year;
   });
 
@@ -170,7 +186,9 @@ function calculateUserStats(tweets: any[], year: number) {
   // Find the earliest tweet to determine join year
   let joinYear = year;
   if (tweets.length > 0) {
-    const dates = tweets.map((t) => new Date(t.tweet_created_at));
+    const dates = tweets.map(
+      (t) => new Date(t.tweet_created_at || t.created_at)
+    );
     const earliestDate = new Date(Math.min(...dates.map((d) => d.getTime())));
     joinYear = earliestDate.getFullYear();
   }
@@ -178,7 +196,7 @@ function calculateUserStats(tweets: any[], year: number) {
   // Group tweets by date to calculate streaks
   const tweetsByDate: Record<string, any[]> = {};
   yearTweets.forEach((tweet) => {
-    const dateKey = new Date(tweet.tweet_created_at)
+    const dateKey = new Date(tweet.tweet_created_at || tweet.created_at)
       .toISOString()
       .split("T")[0];
     if (!tweetsByDate[dateKey]) {
@@ -245,6 +263,23 @@ function calculateUserStats(tweets: any[], year: number) {
   };
 }
 
+// First, define an interface for our API response
+interface TwitterStatsResponse {
+  contributionGraph: {
+    graph: any[][];
+    monthRanges: Array<{
+      month: number;
+      startWeek: number;
+      endWeek: number;
+    }>;
+  };
+  totalPosts: number;
+  bestStreak: number;
+  averagePostsPerDay: number;
+  bestDay: { date: string; count: number } | null;
+  userJoinYear: number;
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const username = searchParams.get("username");
@@ -255,10 +290,10 @@ export async function GET(req: Request) {
   }
 
   const year = yearParam ? parseInt(yearParam) : new Date().getFullYear();
+  const stopDate = new Date(year - 1, 11, 31); // Get tweets from at least the previous year
 
   try {
-    // Create unique cache keys for the user data and stats
-    const userCacheKey = `twitter:user:${username.toLowerCase()}`;
+    // Create unique cache keys for the user stats
     const statsCacheKey = `twitter:stats:${username.toLowerCase()}:${year}`;
 
     // Try to get cached stats first
@@ -268,30 +303,26 @@ export async function GET(req: Request) {
       return NextResponse.json(cachedStats);
     }
 
-    // If no cached stats, check for cached user data
-    let userTweets = (await redis.get(userCacheKey)) as any[] | null;
+    // Fetch the user profile to ensure the user exists
+    const userProfile = await fetchTwitterProfile(username);
 
-    // If no cached user data, fetch from Twitter API
-    if (!userTweets) {
-      console.log(`Fetching fresh tweets for ${username}...`);
-      userTweets = await fetchTweets(username);
-
-      // Cache user tweets for 1 hour (3600 seconds)
-      if (userTweets && Array.isArray(userTweets) && userTweets.length > 0) {
-        await redis.setex(userCacheKey, 3600, userTweets);
-        console.log(`Cached ${userTweets.length} tweets for ${username}`);
-      }
-    } else {
-      console.log(`Using cached tweets for ${username} to generate stats...`);
+    if (!userProfile) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Fetch tweets with a stop date to limit how far back we go
+    console.log(
+      `Fetching tweets for ${username} until ${stopDate.toISOString()}`
+    );
+    const userTweets = await fetchTweetsFromUser(username, stopDate);
+
     // Generate contribution graph and calculate stats
-    const contributionGraph = generateContributionGraph(userTweets || [], year);
-    const userStats = calculateUserStats(userTweets || [], year);
+    const contributionData = generateContributionGraph(userTweets, year);
+    const userStats = calculateUserStats(userTweets, year);
 
     // Combine data
-    const result = {
-      contributionGraph,
+    const result: TwitterStatsResponse = {
+      contributionGraph: contributionData,
       ...userStats,
     };
 
@@ -300,10 +331,19 @@ export async function GET(req: Request) {
     console.log(`Cached stats for ${username} for ${year}`);
 
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in Twitter stats API route:", error);
+
+    // Return appropriate error response
+    if (error.message?.includes("Rate limit exceeded")) {
+      return NextResponse.json(
+        { error: "Twitter API rate limit exceeded. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Failed to fetch Twitter stats" },
+      { error: "Failed to fetch Twitter stats", message: error.message },
       { status: 500 }
     );
   }

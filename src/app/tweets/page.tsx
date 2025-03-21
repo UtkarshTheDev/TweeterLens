@@ -1,37 +1,146 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { Search, Twitter, ArrowRight } from "lucide-react";
+import {
+  Search as SearchIcon,
+  Twitter,
+  ArrowRight,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { TweetData } from "@/components/TweetData";
+import { Spinner } from "@/components/ui/spinner";
+import { Tweets } from "@/components/Tweets";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const fetchTweets = async (username: string) => {
-  const res = await fetch(`/api/twitter?username=${username}`);
+const fetchTweets = async (username: string, forceRefresh = false) => {
+  if (!username || username.trim() === "") return null;
+
+  const url = new URL("/api/twitter", window.location.origin);
+  url.searchParams.append("username", username.trim());
+
+  if (forceRefresh) {
+    url.searchParams.append("force", "true");
+  }
+
+  const res = await fetch(url);
   if (!res.ok) {
-    throw new Error("Failed to fetch tweets");
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to fetch tweets");
   }
   return res.json();
 };
 
 export default function TweetsPage() {
-  const [username, setUsername] = useState("UtkarshTheDev");
-  const [searchUsername, setSearchUsername] = useState("UtkarshTheDev");
+  const [username, setUsername] = useState<string>("");
+  const [validationMessage, setValidationMessage] = useState<string>("");
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["tweets-raw", searchUsername],
-    queryFn: () => fetchTweets(searchUsername),
-    staleTime: 1000 * 60 * 5, // 5 min caching in frontend
-    enabled: true, // Fetch on component mount
-  });
+  const handleSearch = async () => {
+    // Validate username is not empty
+    if (!username || username.trim() === "") {
+      setValidationMessage("Please enter a username");
+      return;
+    }
 
-  const handleSearch = () => {
-    setSearchUsername(username);
-    refetch();
+    setValidationMessage(""); // Clear validation message
+    setHasSearched(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await fetchTweets(username);
+      setData(result);
+    } catch (err: any) {
+      console.error("Error fetching tweets:", err);
+      setError(err.message || "Failed to fetch tweets");
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && username.trim() !== "") {
+      e.preventDefault();
       handleSearch();
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
+
+    // Clear validation message when user types
+    if (validationMessage) {
+      setValidationMessage("");
+    }
+  };
+
+  const handleForceRefresh = async () => {
+    if (!username || username.trim() === "") {
+      setValidationMessage("Please enter a username");
+      return;
+    }
+
+    setValidationMessage("");
+    setError(null);
+    setIsRefreshing(true);
+
+    try {
+      const result = await fetchTweets(username, true);
+      setData(result);
+    } catch (err: any) {
+      console.error("Error refreshing tweets:", err);
+      setError(err.message || "Failed to refresh tweets");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleLoadAllTweets = async () => {
+    if (!username || username.trim() === "") {
+      setValidationMessage("Please enter a username");
+      return;
+    }
+
+    setValidationMessage("");
+    setError(null);
+    setIsRefreshing(true);
+
+    try {
+      // Add max_pages parameter to attempt to fetch all tweets
+      const url = new URL("/api/twitter", window.location.origin);
+      url.searchParams.append("username", username.trim());
+      url.searchParams.append("force", "true");
+      url.searchParams.append("max_pages", "500"); // Set a high limit
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to fetch all tweets");
+      }
+
+      const result = await res.json();
+      setData(result);
+    } catch (err: any) {
+      console.error("Error loading all tweets:", err);
+      setError(err.message || "Failed to load all tweets");
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -65,54 +174,176 @@ export default function TweetsPage() {
 
       <main>
         <div className="container mx-auto px-4 py-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative flex w-full max-w-xl mx-auto items-center gap-2 mb-8"
-          >
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Enter Twitter Username"
-                className="w-full rounded-full border border-white/10 bg-black/50 px-10 py-3 text-white shadow-lg backdrop-blur-xl transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              />
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSearch}
-              className="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 p-3 text-white shadow-lg transition-all hover:shadow-blue-500/25"
-            >
-              <ArrowRight className="h-5 w-5" />
-            </motion.button>
-          </motion.div>
+          <h1 className="text-2xl font-bold mb-6">Twitter Feed Visualizer</h1>
 
-          {isLoading && (
-            <div className="flex justify-center py-12">
-              <div className="flex items-center space-x-2">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-                <span className="text-gray-400">Loading tweets...</span>
+          <div className="mb-6">
+            <div className="relative overflow-hidden rounded-xl shadow-2xl border border-white/10 bg-gradient-to-r from-gray-900/80 to-black/80 backdrop-blur-xl">
+              {/* Animated background */}
+              <div className="absolute inset-0 -z-10 opacity-30">
+                <div
+                  className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 animate-gradient"
+                  style={{ backgroundSize: "200% 200%" }}
+                />
+              </div>
+
+              <div className="relative flex items-center p-2">
+                <div className="relative flex-1 flex items-center">
+                  <SearchIcon className="absolute left-3 h-5 w-5 text-blue-400" />
+                  <Input
+                    type="text"
+                    placeholder="Enter Twitter username..."
+                    value={username}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    className="w-full pl-10 bg-transparent border-none text-white placeholder:text-gray-400 focus:ring-0 text-lg py-2"
+                    disabled={loading || isRefreshing}
+                  />
+                </div>
+
+                <motion.div
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="ml-2"
+                >
+                  <Button
+                    onClick={handleSearch}
+                    disabled={loading || isRefreshing || !username.trim()}
+                    className="relative overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-6 py-2.5 rounded-lg shadow-xl hover:shadow-blue-500/25"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <Spinner className="mr-2 h-4 w-4" />
+                        <span>Searching...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span>Search</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    )}
+
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 -z-10 overflow-hidden rounded-lg">
+                      <div
+                        className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        style={{ transform: "rotate(-45deg)" }}
+                      ></div>
+                    </div>
+                  </Button>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="ml-2"
+                >
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleForceRefresh}
+                          disabled={
+                            isRefreshing || loading || !username.trim() || !data
+                          }
+                          className="bg-black/30 border-white/10 hover:bg-purple-500/20 hover:border-purple-500/50"
+                        >
+                          <RefreshCw
+                            className={`h-4 w-4 ${
+                              isRefreshing ? "animate-spin" : ""
+                            }`}
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-gray-900/90 border-white/10 text-white">
+                        <p>
+                          {data?.payment_error
+                            ? "API limit reached. Refreshing may not fetch new tweets."
+                            : "Force refresh all tweets"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </motion.div>
               </div>
             </div>
-          )}
 
-          {isError && (
-            <div className="mx-auto max-w-md rounded-lg bg-red-900/20 p-6 text-center text-red-400 backdrop-blur-xl">
-              <h3 className="mb-2 text-xl font-semibold">
-                Error Loading Tweets
-              </h3>
-              <p>
-                Failed to load tweets. Please check the username and try again.
-              </p>
+            {validationMessage && (
+              <motion.p
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-sm text-red-500"
+              >
+                {validationMessage}
+              </motion.p>
+            )}
+
+            {data?.payment_error && (
+              <Alert
+                variant="destructive"
+                className="mt-4 bg-red-950/20 border-red-500/20"
+              >
+                <AlertDescription>{data.payment_error}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          {error && (
+            <div
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
+              role="alert"
+            >
+              <span className="block sm:inline">{error}</span>
             </div>
           )}
 
-          {data && <TweetData data={data} />}
+          {loading && !isRefreshing ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Spinner className="h-8 w-8 mb-4" />
+              <p className="text-gray-500">Loading tweets...</p>
+            </div>
+          ) : isRefreshing ? (
+            <div className="opacity-50 pointer-events-none">
+              <Tweets data={data} />
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10">
+                <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                  <Spinner className="h-8 w-8 mb-2" />
+                  <p>Refreshing tweets...</p>
+                </div>
+              </div>
+            </div>
+          ) : data ? (
+            <>
+              <Tweets data={data} />
+
+              {/* Add "Load All Tweets" button if we haven't fetched all tweets */}
+              {data.total_fetched < data.total_profile_tweets && (
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    onClick={handleLoadAllTweets}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    <span>
+                      Load All Tweets (
+                      {data.total_profile_tweets - data.total_fetched}{" "}
+                      remaining)
+                    </span>
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : hasSearched ? (
+            <div className="text-center py-12 text-gray-500">
+              <p>No tweets found. Please check the username and try again.</p>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <p>Enter a Twitter username to view tweets.</p>
+            </div>
+          )}
         </div>
       </main>
 
