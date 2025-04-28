@@ -43,7 +43,7 @@ export default function Home() {
                 <Twitter className="h-8 w-8 text-blue-400 relative z-10" />
               </motion.div>
               <h1 className="relative bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-[size:200%] animate-gradient-x bg-clip-text text-2xl font-bold text-transparent">
-                TweetX
+                TweeterLens
                 <motion.span
                   className="absolute -bottom-1 left-0 h-[2px] bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                   initial={{ width: "0%" }}
@@ -89,7 +89,7 @@ export default function Home() {
                   className="flex items-center gap-2 rounded-full border-white/10 bg-black/50 px-4 py-2 text-sm text-white shadow-lg hover:border-yellow-500/50 hover:shadow-yellow-500/25"
                 >
                   <a
-                    href="https://github.com/UtkarshTheDev/tweetx"
+                    href="https://github.com/UtkarshTheDev/TweeterLens"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -184,7 +184,7 @@ export default function Home() {
                   className="flex items-center gap-2 rounded-lg border-white/10 bg-gradient-to-br from-black/70 to-gray-900/70 px-6 py-3 text-white shadow-xl hover:border-yellow-500/50 hover:shadow-yellow-500/10"
                 >
                   <a
-                    href="https://github.com/UtkarshTheDev/tweetx"
+                    href="https://github.com/UtkarshTheDev/TweeterLens"
                     target="_blank"
                     rel="noopener noreferrer"
                   >

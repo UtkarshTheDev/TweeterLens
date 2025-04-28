@@ -6,7 +6,7 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TweetX - Twitter Feed Viewer",
+  title: "TweeterLens - Twitter Feed Viewer",
   description: "A beautiful Twitter feed viewer built with Next.js",
 };
 
