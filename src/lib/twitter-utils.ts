@@ -32,18 +32,19 @@ export const HOST_URL = "https://api.socialdata.tools";
 export const SEARCH_ENDPOINT = "/twitter/search";
 
 // Constants
-export const API_KEY = process.env.SOCIALDATA_API_KEY;
 export const SAFETY_STOP = 300; // Increased from 100 to 300 to fetch more tweets - handles up to 6000 tweets
 
-// Use ky instead of KY
-// @ts-ignore Using any type to avoid ky type issues
-const KY = (ky as any).extend({
-  headers: {
-    Authorization: `Bearer ${API_KEY}`,
-    Accept: "application/json",
-  },
-  timeout: 30000,
-});
+// Create a function to get a KY instance with the provided API key
+export function getApiClient(apiKey: string) {
+  // @ts-ignore Using any type to avoid ky type issues
+  return (ky as any).extend({
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+    },
+    timeout: 30000,
+  });
+}
 
 // Types
 export interface TwitterUser {
@@ -216,7 +217,8 @@ async function fetchWithRetry(
 
 // Update the fetchTwitterProfile function to use fetchWithRetry
 export async function fetchTwitterProfile(
-  name: string
+  name: string,
+  apiKey: string
 ): Promise<TwitterUser | null> {
   const cached = await getCachedTwitterProfile(name);
   if (cached) {
@@ -229,7 +231,7 @@ export async function fetchTwitterProfile(
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
           Accept: "application/json",
         },
       }
@@ -289,6 +291,7 @@ interface FetchFromSocialDataInput {
   previousSmallestId?: string;
   duplicateResponses?: Map<string, number>; // Track duplicate API responses
   previousResponses?: Set<string>; // Track hash signatures of previous API responses
+  apiKey: string;
 }
 
 interface Tweet {
@@ -371,6 +374,7 @@ async function fetchFromSocialData(
           duplicateResponses,
           previousResponses,
           emptyBatchesCount: 0, // Reset empty batches count
+          apiKey: input.apiKey,
         });
       }
       return;
@@ -393,7 +397,7 @@ async function fetchFromSocialData(
     console.log(`Fetching tweets from ${url}`);
 
     // Make the API request
-    const response = await KY.get(url, options);
+    const response = await getApiClient(input.apiKey).get(url, options);
     const status = response.status;
 
     // If we hit a rate limit issue or error
@@ -455,6 +459,7 @@ async function fetchFromSocialData(
           duplicateResponses,
           previousResponses,
           emptyBatchesCount: 0, // Reset empty batches count
+          apiKey: input.apiKey,
         });
       }
     }
@@ -549,6 +554,7 @@ async function fetchFromSocialData(
           duplicateResponses: new Map(), // Reset duplicate tracking
           previousResponses, // Keep previous responses
           emptyBatchesCount: 0, // Reset empty batches count
+          apiKey: input.apiKey,
         });
       } else {
         shouldStop = true;
@@ -572,6 +578,7 @@ async function fetchFromSocialData(
       duplicateResponses,
       previousResponses,
       emptyBatchesCount: newEmptyBatchesCount,
+      apiKey: input.apiKey,
     });
   } catch (error) {
     console.error(`Error fetching tweets for ${input.username}:`, error);
@@ -584,7 +591,8 @@ export async function fetchTweetsFromUser(
   stopDate?: Date,
   callback?: (collection: any[]) => void,
   maxPages?: number,
-  forceRefresh: boolean = false
+  forceRefresh: boolean = false,
+  apiKey: string = ""
 ): Promise<any[]> {
   try {
     // Clear cache if force refresh requested
@@ -605,7 +613,7 @@ export async function fetchTweetsFromUser(
     );
 
     // Get user profile to check total tweet count
-    const userProfile = await fetchTwitterProfile(name);
+    const userProfile = await fetchTwitterProfile(name, apiKey);
     const totalTweets = userProfile?.statuses_count || 0;
 
     console.log(
@@ -657,6 +665,7 @@ export async function fetchTweetsFromUser(
       // Start with empty tracking sets to avoid carrying over stale state
       duplicateResponses: new Map(),
       previousResponses: new Set(),
+      apiKey,
     });
 
     // Convert final collection to array

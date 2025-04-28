@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TweetData } from "@/components/TweetData";
+import { ApiKeyInput } from "@/components/ApiKeyInput";
 
 const themes = [
   {
@@ -83,26 +84,101 @@ const themes = [
     background: "bg-[#1d2021]",
     text: "text-yellow-100",
   },
+  {
+    name: "Twitter Blue",
+    colors: ["#15202b", "#1a8cd8", "#1d9bf0", "#8ecdf8", "#d6ebfc"],
+    background: "bg-[#15202b]",
+    text: "text-blue-100",
+  },
+  {
+    name: "Forest",
+    colors: ["#1e2a20", "#2d4a33", "#3e6446", "#5c8c5e", "#8ebe8b"],
+    background: "bg-[#1e2a20]",
+    text: "text-green-100",
+  },
+  {
+    name: "Ocean",
+    colors: ["#0a192f", "#1a365d", "#2c5282", "#3182ce", "#90cdf4"],
+    background: "bg-[#0a192f]",
+    text: "text-blue-100",
+  },
+  {
+    name: "Sunset",
+    colors: ["#1a202c", "#742a2a", "#c53030", "#f56565", "#feb2b2"],
+    background: "bg-[#1a202c]",
+    text: "text-red-100",
+  },
+  {
+    name: "Neon",
+    colors: ["#000000", "#ff00ff", "#00ffff", "#ff0099", "#33ff00"],
+    background: "bg-black",
+    text: "text-pink-100",
+  },
+  {
+    name: "Pastel",
+    colors: ["#f8fafc", "#fbd6d2", "#f8b4b4", "#f9a8d4", "#c7d2fe"],
+    background: "bg-[#f8fafc]",
+    text: "text-gray-900",
+  },
+  {
+    name: "Retro",
+    colors: ["#2c2a32", "#5e4fa1", "#f26d85", "#ffd166", "#63c7b2"],
+    background: "bg-[#2c2a32]",
+    text: "text-amber-100",
+  },
+  {
+    name: "Coffee",
+    colors: ["#20141d", "#42332c", "#624b3e", "#805c48", "#c08552"],
+    background: "bg-[#20141d]",
+    text: "text-amber-100",
+  },
 ];
 
 interface TwitterStatsResponse {
   totalPosts: number;
   bestStreak: number;
+  bestStreakPeriod: string | null;
+  currentStreak: number;
   averagePostsPerDay: number;
   bestDay: {
     count: number;
     date: string;
   };
   userJoinYear: number;
+  averageEngagement: {
+    likes: number;
+    retweets: number;
+    replies: number;
+    views: number;
+  };
+  mostActiveDayOfWeek: { day: string; count: number };
+  mostActiveMonth: { month: string; count: number };
+  topHashtags: Array<{ tag: string; count: number }>;
+  engagementTrends: Array<{
+    month: string;
+    posts: number;
+    likes: number;
+    retweets: number;
+    engagement: number;
+  }>;
   contributionGraph: {
-    graph: { date: string; count: number }[];
+    graph: Array<
+      Array<{
+        date: string;
+        count: number;
+        level: number;
+        month: number;
+        day: number;
+        weekday: number;
+      }>
+    >;
     monthRanges: MonthRange[];
   };
 }
 
-const fetchUserStats = async (username: string, year: number) => {
+const fetchUserStats = async (username: string, apiKey: string) => {
   const res = await fetch(
-    `/api/twitter/stats?username=${username}&year=${year}`
+    `/api/twitter/stats?username=${username}&apiKey=${apiKey}`
   );
   if (!res.ok) {
     throw new Error("Failed to fetch user stats");
@@ -162,6 +238,7 @@ const getActivityColor = (count: number, theme: ThemeOption): string => {
 export const TwitterFeed = () => {
   const [username, setUsername] = useState("");
   const [searchUsername, setSearchUsername] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [selectedTheme, setSelectedTheme] = useState(themes[0]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState<number[]>([
@@ -169,23 +246,26 @@ export const TwitterFeed = () => {
   ]);
   const graphRef = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading, error, refetch } = useQuery<TwitterStatsResponse>({
-    queryKey: ["userStats", searchUsername, selectedYear],
-    queryFn: () => fetchUserStats(searchUsername, selectedYear),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: searchUsername.length > 0,
-  });
-
+  // Load API key from localStorage on component mount
   useEffect(() => {
-    if (data?.userJoinYear) {
-      setAvailableYears(generateYearOptions(data.userJoinYear));
+    const savedApiKey = localStorage.getItem("socialdataApiKey");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
     }
-  }, [data]);
+  }, []);
+
+  const handleApiKeySaved = (key: string) => {
+    setApiKey(key);
+  };
 
   const handleSearch = () => {
     if (!username.trim()) return;
+    if (!apiKey) {
+      // Alert user to enter API key first
+      alert("Please enter your Social Data API key before searching");
+      return;
+    }
     setSearchUsername(username);
-    refetch();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -243,8 +323,27 @@ export const TwitterFeed = () => {
     "Dec",
   ];
 
+  // Only enable the query when both username and apiKey are available
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["twitterStats", searchUsername, apiKey],
+    queryFn: () =>
+      fetchUserStats(searchUsername, apiKey) as Promise<TwitterStatsResponse>,
+    enabled: !!searchUsername && !!apiKey,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  useEffect(() => {
+    if (data?.userJoinYear) {
+      setAvailableYears(
+        generateYearOptions((data as TwitterStatsResponse).userJoinYear)
+      );
+    }
+  }, [data]);
+
   return (
     <div className="container mx-auto px-4 py-8">
+      <ApiKeyInput onApiKeySaved={handleApiKeySaved} />
+
       <div className="flex flex-col items-center space-y-8">
         {/* Modern search box */}
         <motion.div
@@ -270,18 +369,27 @@ export const TwitterFeed = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Enter a Twitter username..."
+                placeholder={
+                  apiKey
+                    ? "Enter a Twitter username..."
+                    : "First add API key above, then enter username..."
+                }
                 className="flex-1 bg-transparent border-none text-white placeholder:text-gray-400 focus:ring-0 text-lg py-2"
+                disabled={!apiKey}
               />
 
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: apiKey ? 1.05 : 1 }}
+                whileTap={{ scale: apiKey ? 0.95 : 1 }}
               >
                 <Button
                   onClick={handleSearch}
-                  className="relative overflow-hidden ml-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-6 py-2 shadow-xl hover:shadow-blue-500/25"
-                  disabled={isLoading}
+                  className={`relative overflow-hidden ml-2 rounded-xl ${
+                    apiKey
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                      : "bg-gray-700 text-gray-300"
+                  } font-medium px-6 py-2 shadow-xl hover:shadow-blue-500/25`}
+                  disabled={isLoading || !apiKey}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
@@ -290,7 +398,7 @@ export const TwitterFeed = () => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span>Search</span>
+                      <span>{apiKey ? "Search" : "Need API Key"}</span>
                       <ArrowRight className="h-4 w-4" />
                     </div>
                   )}
@@ -298,7 +406,9 @@ export const TwitterFeed = () => {
                   {/* Button shine effect */}
                   <div className="absolute inset-0 -z-10 overflow-hidden rounded-xl">
                     <div
-                      className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                      className={`absolute -inset-[100%] ${
+                        apiKey ? "animate-[spin_4s_linear_infinite]" : ""
+                      } bg-gradient-to-r from-transparent via-white/20 to-transparent`}
                       style={{ transform: "rotate(-45deg)" }}
                     ></div>
                   </div>
@@ -314,7 +424,9 @@ export const TwitterFeed = () => {
             transition={{ delay: 0.3 }}
             className="mt-2 text-center text-sm text-gray-500"
           >
-            Try searching for usernames like "elonmusk" or "UtkarshTheDev"
+            {apiKey
+              ? 'Try searching for usernames like "elonmusk" or "UtkarshTheDev"'
+              : "Please enter your Social Data API key above to enable searching"}
           </motion.p>
         </motion.div>
 
@@ -396,7 +508,8 @@ export const TwitterFeed = () => {
                   's X Contributions
                 </h2>
                 <p className="text-sm text-gray-400">
-                  {data.totalPosts} posts in {selectedYear}
+                  {(data as TwitterStatsResponse).totalPosts} posts in{" "}
+                  {selectedYear}
                 </p>
               </div>
 
@@ -531,16 +644,20 @@ export const TwitterFeed = () => {
                   <div className="w-full border-b border-white/5"></div>
                 </div>
                 <div className="relative flex justify-between">
-                  {data?.contributionGraph?.monthRanges?.map(
+                  {(
+                    data as TwitterStatsResponse
+                  ).contributionGraph?.monthRanges?.map(
                     (range: MonthRange, i: number) => {
                       // Calculate position based on week ranges
                       const startPercent =
                         (range.startWeek /
-                          data.contributionGraph.graph.length) *
+                          (data as TwitterStatsResponse).contributionGraph.graph
+                            .length) *
                         100;
                       const endPercent =
                         ((range.endWeek + 1) /
-                          data.contributionGraph.graph.length) *
+                          (data as TwitterStatsResponse).contributionGraph.graph
+                            .length) *
                         100;
                       const width = endPercent - startPercent;
 
@@ -581,36 +698,50 @@ export const TwitterFeed = () => {
 
                 {/* Contribution cells grid with animation */}
                 <div className="grid grid-rows-7 grid-flow-col gap-1">
-                  {data?.contributionGraph?.graph.map((day, i) => (
-                    <TooltipProvider key={i}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{
-                              scale: 1,
-                              opacity: 1,
-                              transition: {
-                                delay: i * 0.0005, // Create a cascade effect
-                                duration: 0.2,
-                              },
-                            }}
-                            whileHover={{ scale: 1.3, zIndex: 10 }}
-                            className="h-3.5 w-3.5 rounded-sm transition-colors duration-200"
-                            style={{
-                              backgroundColor: getActivityColor(
-                                day.count,
-                                selectedTheme
-                              ),
-                            }}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {day.count} posts on {formatDate(day.date)}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ))}
+                  {(data as TwitterStatsResponse).contributionGraph?.graph
+                    .flat()
+                    .map(
+                      (
+                        day: {
+                          date: string;
+                          count: number;
+                          level: number;
+                          month: number;
+                          day: number;
+                          weekday: number;
+                        },
+                        i: number
+                      ) => (
+                        <TooltipProvider key={i}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{
+                                  scale: 1,
+                                  opacity: 1,
+                                  transition: {
+                                    delay: i * 0.0005, // Create a cascade effect
+                                    duration: 0.2,
+                                  },
+                                }}
+                                whileHover={{ scale: 1.3, zIndex: 10 }}
+                                className="h-3.5 w-3.5 rounded-sm transition-colors duration-200"
+                                style={{
+                                  backgroundColor: getActivityColor(
+                                    day.count,
+                                    selectedTheme
+                                  ),
+                                }}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {day.count} posts on {formatDate(day.date)}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )
+                    )}
                 </div>
               </div>
 
@@ -639,7 +770,8 @@ export const TwitterFeed = () => {
                     Tweet Stats
                   </h3>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4 pt-0">
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-0">
+                  {/* Total Posts */}
                   <motion.div
                     whileHover={{
                       scale: 1.03,
@@ -650,9 +782,27 @@ export const TwitterFeed = () => {
                   >
                     <p className="text-xs text-gray-500">Total Posts</p>
                     <p className="text-2xl font-bold text-white">
-                      {data.totalPosts}
+                      {(data as TwitterStatsResponse).totalPosts}
                     </p>
                   </motion.div>
+
+                  {/* Current Streak */}
+                  <motion.div
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(236, 72, 153, 0.2)",
+                      borderColor: "rgba(236, 72, 153, 0.4)",
+                    }}
+                    className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
+                  >
+                    <p className="text-xs text-gray-500">Current Streak</p>
+                    <p className="text-2xl font-bold text-white">
+                      {(data as TwitterStatsResponse).currentStreak}
+                      <span className="ml-1 text-xs text-gray-500">days</span>
+                    </p>
+                  </motion.div>
+
+                  {/* Best Streak */}
                   <motion.div
                     whileHover={{
                       scale: 1.03,
@@ -663,10 +813,17 @@ export const TwitterFeed = () => {
                   >
                     <p className="text-xs text-gray-500">Best Streak</p>
                     <p className="text-2xl font-bold text-white">
-                      {data.bestStreak}
+                      {(data as TwitterStatsResponse).bestStreak}
                       <span className="ml-1 text-xs text-gray-500">days</span>
                     </p>
+                    {(data as TwitterStatsResponse).bestStreakPeriod && (
+                      <p className="text-xs text-gray-500 truncate">
+                        {(data as TwitterStatsResponse).bestStreakPeriod}
+                      </p>
+                    )}
                   </motion.div>
+
+                  {/* Avg Posts/Day */}
                   <motion.div
                     whileHover={{
                       scale: 1.03,
@@ -677,9 +834,52 @@ export const TwitterFeed = () => {
                   >
                     <p className="text-xs text-gray-500">Avg Posts/Day</p>
                     <p className="text-2xl font-bold text-white">
-                      {data.averagePostsPerDay}
+                      {(data as TwitterStatsResponse).averagePostsPerDay}
                     </p>
                   </motion.div>
+
+                  {/* Most Active Day */}
+                  <motion.div
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(16, 185, 129, 0.2)",
+                      borderColor: "rgba(16, 185, 129, 0.4)",
+                    }}
+                    className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
+                  >
+                    <p className="text-xs text-gray-500">Most Active Day</p>
+                    <p className="text-xl font-bold text-white">
+                      {(data as TwitterStatsResponse).mostActiveDayOfWeek?.day}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {
+                        (data as TwitterStatsResponse).mostActiveDayOfWeek
+                          ?.count
+                      }{" "}
+                      posts
+                    </p>
+                  </motion.div>
+
+                  {/* Most Active Month */}
+                  <motion.div
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(245, 158, 11, 0.2)",
+                      borderColor: "rgba(245, 158, 11, 0.4)",
+                    }}
+                    className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
+                  >
+                    <p className="text-xs text-gray-500">Most Active Month</p>
+                    <p className="text-xl font-bold text-white">
+                      {(data as TwitterStatsResponse).mostActiveMonth?.month}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(data as TwitterStatsResponse).mostActiveMonth?.count}{" "}
+                      posts
+                    </p>
+                  </motion.div>
+
+                  {/* Most Posts on a day */}
                   <motion.div
                     whileHover={{
                       scale: 1.03,
@@ -690,11 +890,83 @@ export const TwitterFeed = () => {
                   >
                     <p className="text-xs text-gray-500">Most Posts on</p>
                     <p className="text-xl font-bold text-white truncate">
-                      {data.bestDay?.date || "N/A"}
+                      {(data as TwitterStatsResponse).bestDay?.date || "N/A"}
+                    </p>
+                    {(data as TwitterStatsResponse).bestDay && (
+                      <p className="text-xs text-gray-500">
+                        {(data as TwitterStatsResponse).bestDay.count} posts
+                      </p>
+                    )}
+                  </motion.div>
+
+                  {/* Average Likes */}
+                  <motion.div
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(239, 68, 68, 0.2)",
+                      borderColor: "rgba(239, 68, 68, 0.4)",
+                    }}
+                    className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
+                  >
+                    <p className="text-xs text-gray-500">Avg Likes/Post</p>
+                    <p className="text-2xl font-bold text-white">
+                      {(
+                        data as TwitterStatsResponse
+                      ).averageEngagement?.likes.toFixed(1)}
+                    </p>
+                  </motion.div>
+
+                  {/* Average Retweets */}
+                  <motion.div
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(16, 185, 129, 0.2)",
+                      borderColor: "rgba(16, 185, 129, 0.4)",
+                    }}
+                    className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
+                  >
+                    <p className="text-xs text-gray-500">Avg Retweets/Post</p>
+                    <p className="text-2xl font-bold text-white">
+                      {(
+                        data as TwitterStatsResponse
+                      ).averageEngagement?.retweets.toFixed(1)}
                     </p>
                   </motion.div>
                 </CardContent>
               </Card>
+
+              {/* Hashtags Section */}
+              {(data as TwitterStatsResponse).topHashtags &&
+                (data as TwitterStatsResponse).topHashtags.length > 0 && (
+                  <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-gray-900/40 to-black/40 backdrop-blur-xl">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+                      <h3 className="text-sm font-medium text-gray-300">
+                        Top Hashtags
+                      </h3>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex flex-wrap gap-2">
+                        {(data as TwitterStatsResponse).topHashtags.map(
+                          (
+                            tag: { tag: string; count: number },
+                            index: number
+                          ) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="px-2 py-1 rounded-full bg-blue-900/20 text-blue-400 hover:bg-blue-900/30"
+                            >
+                              #{tag.tag}
+                              <span className="ml-1 text-xs text-gray-400">
+                                ({tag.count})
+                              </span>
+                            </Badge>
+                          )
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
             </motion.div>
           </motion.div>
         )}

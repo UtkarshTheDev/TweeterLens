@@ -21,12 +21,22 @@ export async function GET(request: Request) {
     const limitParam = url.searchParams.get("limit");
     const maxPagesParam = url.searchParams.get("max_pages");
     const stopDateParam = url.searchParams.get("stopDate");
+    const apiKey = url.searchParams.get("apiKey");
 
     // Validate username properly
     if (!username || username.trim() === "") {
       console.log("Username is required but was empty");
       return NextResponse.json(
         { error: "Username is required and cannot be empty" },
+        { status: 400 }
+      );
+    }
+
+    // Validate API key
+    if (!apiKey) {
+      console.log("API key is required but was empty");
+      return NextResponse.json(
+        { error: "API key is required" },
         { status: 400 }
       );
     }
@@ -48,7 +58,7 @@ export async function GET(request: Request) {
     );
 
     // Fetch user profile
-    const user = await fetchTwitterProfile(normalizedUsername);
+    const user = await fetchTwitterProfile(normalizedUsername, apiKey);
     if (!user) {
       console.log(`User not found: ${normalizedUsername}`);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -67,7 +77,8 @@ export async function GET(request: Request) {
           fetchLog.push(`Fetched ${collection.length} tweets`);
         },
         maxPages,
-        forceRefresh
+        forceRefresh,
+        apiKey
       );
     } catch (error) {
       // If this is a 402 error, we want to return the partial results

@@ -205,14 +205,32 @@ function calculateUserStats(tweets: any[], year: number) {
     tweetsByDate[dateKey].push(tweet);
   });
 
-  // Calculate best streak
+  // Calculate best streak and current streak
   const dates = Object.keys(tweetsByDate).sort();
   let currentStreak = 0;
   let bestStreak = 0;
+  let currentStreakStart: string | null = null;
+  let bestStreakStart: string | null = null;
+  let bestStreakEnd: string | null = null;
+
+  // Helper to format date for display
+  const formatDateForDisplay = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Check if today or yesterday has posts to determine if the streak is current
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const isCurrentStreak = tweetsByDate[today] || tweetsByDate[yesterday];
 
   for (let i = 0; i < dates.length; i++) {
     if (i === 0) {
       currentStreak = 1;
+      currentStreakStart = dates[i];
     } else {
       const currentDate = new Date(dates[i]);
       const prevDate = new Date(dates[i - 1]);
@@ -224,12 +242,33 @@ function calculateUserStats(tweets: any[], year: number) {
       if (diffDays === 1) {
         currentStreak++;
       } else {
+        // If streak is broken, check if it was the best
+        if (currentStreak > bestStreak) {
+          bestStreak = currentStreak;
+          bestStreakStart = currentStreakStart;
+          bestStreakEnd = dates[i - 1];
+        }
+        // Reset current streak
         currentStreak = 1;
+        currentStreakStart = dates[i];
       }
     }
 
-    bestStreak = Math.max(bestStreak, currentStreak);
+    // Check if we're at the end of the dates array
+    if (i === dates.length - 1 && currentStreak > bestStreak) {
+      bestStreak = currentStreak;
+      bestStreakStart = currentStreakStart;
+      bestStreakEnd = dates[i];
+    }
   }
+
+  // Format best streak period for display
+  const bestStreakPeriod =
+    bestStreakStart && bestStreakEnd
+      ? `${formatDateForDisplay(bestStreakStart)} - ${formatDateForDisplay(
+          bestStreakEnd
+        )}`
+      : null;
 
   // Calculate average posts per day (only counting days in the year)
   const daysInYear =
@@ -254,12 +293,166 @@ function calculateUserStats(tweets: any[], year: number) {
     }
   });
 
+  // Calculate average engagement metrics
+  let totalLikes = 0;
+  let totalRetweets = 0;
+  let totalReplies = 0;
+  let totalViews = 0;
+
+  yearTweets.forEach((tweet) => {
+    totalLikes += tweet.favorite_count || 0;
+    totalRetweets += tweet.retweet_count || 0;
+    totalReplies += tweet.reply_count || 0;
+    totalViews += tweet.views_count || tweet.view_count || 0;
+  });
+
+  const averageEngagement = {
+    likes:
+      totalPosts > 0 ? parseFloat((totalLikes / totalPosts).toFixed(1)) : 0,
+    retweets:
+      totalPosts > 0 ? parseFloat((totalRetweets / totalPosts).toFixed(1)) : 0,
+    replies:
+      totalPosts > 0 ? parseFloat((totalReplies / totalPosts).toFixed(1)) : 0,
+    views:
+      totalPosts > 0 ? parseFloat((totalViews / totalPosts).toFixed(1)) : 0,
+  };
+
+  // Find most active day of the week
+  const dayOfWeekCounts = [0, 0, 0, 0, 0, 0, 0]; // Sun, Mon, Tue, Wed, Thu, Fri, Sat
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  yearTweets.forEach((tweet) => {
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+    const dayOfWeek = tweetDate.getDay();
+    dayOfWeekCounts[dayOfWeek]++;
+  });
+
+  const mostActiveDayOfWeek = {
+    day: dayNames[dayOfWeekCounts.indexOf(Math.max(...dayOfWeekCounts))],
+    count: Math.max(...dayOfWeekCounts),
+  };
+
+  // Find most active month
+  const monthCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // Jan to Dec
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  yearTweets.forEach((tweet) => {
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+    const month = tweetDate.getMonth();
+    monthCounts[month]++;
+  });
+
+  const mostActiveMonth = {
+    month: monthNames[monthCounts.indexOf(Math.max(...monthCounts))],
+    count: Math.max(...monthCounts),
+  };
+
+  // Extract most used hashtags
+  const hashtagCounts: Record<string, number> = {};
+
+  yearTweets.forEach((tweet) => {
+    if (tweet.entities?.hashtags && Array.isArray(tweet.entities.hashtags)) {
+      tweet.entities.hashtags.forEach((tag: any) => {
+        const hashtag = tag.text.toLowerCase();
+        hashtagCounts[hashtag] = (hashtagCounts[hashtag] || 0) + 1;
+      });
+    }
+  });
+
+  // Convert hashtag counts to array and sort
+  const hashtagsArray = Object.entries(hashtagCounts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Top 5 hashtags
+  const topHashtags = hashtagsArray.slice(0, 5);
+
+  // Calculate tweet engagement trends by month (if data spans multiple months)
+  const engagementByMonth: Record<
+    string,
+    {
+      posts: number;
+      likes: number;
+      retweets: number;
+      engagement: number;
+    }
+  > = {};
+
+  const monthFormatOptions = { month: "short", year: "numeric" } as const;
+
+  yearTweets.forEach((tweet) => {
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+    const monthYearKey = tweetDate.toLocaleDateString(
+      "en-US",
+      monthFormatOptions
+    );
+
+    if (!engagementByMonth[monthYearKey]) {
+      engagementByMonth[monthYearKey] = {
+        posts: 0,
+        likes: 0,
+        retweets: 0,
+        engagement: 0,
+      };
+    }
+
+    engagementByMonth[monthYearKey].posts += 1;
+    engagementByMonth[monthYearKey].likes += tweet.favorite_count || 0;
+    engagementByMonth[monthYearKey].retweets += tweet.retweet_count || 0;
+  });
+
+  // Calculate engagement rate for each month
+  Object.keys(engagementByMonth).forEach((month) => {
+    const data = engagementByMonth[month];
+    data.engagement =
+      data.posts > 0
+        ? parseFloat(((data.likes + data.retweets) / data.posts).toFixed(1))
+        : 0;
+  });
+
+  // Sort engagement by month chronologically
+  const engagementTrends = Object.entries(engagementByMonth)
+    .map(([month, data]) => ({ month, ...data }))
+    .sort((a, b) => {
+      const dateA = new Date(a.month);
+      const dateB = new Date(b.month);
+      return dateA.getTime() - dateB.getTime();
+    });
+
   return {
     totalPosts,
     bestStreak,
+    bestStreakPeriod,
+    currentStreak: isCurrentStreak ? currentStreak : 0,
     averagePostsPerDay,
     bestDay,
     userJoinYear: joinYear,
+    averageEngagement,
+    mostActiveDayOfWeek,
+    mostActiveMonth,
+    topHashtags,
+    engagementTrends,
   };
 }
 
@@ -275,18 +468,41 @@ interface TwitterStatsResponse {
   };
   totalPosts: number;
   bestStreak: number;
+  bestStreakPeriod: string | null;
+  currentStreak: number;
   averagePostsPerDay: number;
   bestDay: { date: string; count: number } | null;
   userJoinYear: number;
+  averageEngagement: {
+    likes: number;
+    retweets: number;
+    replies: number;
+    views: number;
+  };
+  mostActiveDayOfWeek: { day: string; count: number };
+  mostActiveMonth: { month: string; count: number };
+  topHashtags: Array<{ tag: string; count: number }>;
+  engagementTrends: Array<{
+    month: string;
+    posts: number;
+    likes: number;
+    retweets: number;
+    engagement: number;
+  }>;
 }
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const username = searchParams.get("username");
   const yearParam = searchParams.get("year");
+  const apiKey = searchParams.get("apiKey");
 
   if (!username) {
     return NextResponse.json({ error: "Username required" }, { status: 400 });
+  }
+
+  if (!apiKey) {
+    return NextResponse.json({ error: "API key required" }, { status: 400 });
   }
 
   const year = yearParam ? parseInt(yearParam) : new Date().getFullYear();
@@ -304,7 +520,7 @@ export async function GET(req: Request) {
     }
 
     // Fetch the user profile to ensure the user exists
-    const userProfile = await fetchTwitterProfile(username);
+    const userProfile = await fetchTwitterProfile(username, apiKey);
 
     if (!userProfile) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -314,7 +530,14 @@ export async function GET(req: Request) {
     console.log(
       `Fetching tweets for ${username} until ${stopDate.toISOString()}`
     );
-    const userTweets = await fetchTweetsFromUser(username, stopDate);
+    const userTweets = await fetchTweetsFromUser(
+      username,
+      stopDate,
+      undefined,
+      undefined,
+      false,
+      apiKey
+    );
 
     // Generate contribution graph and calculate stats
     const contributionData = generateContributionGraph(userTweets, year);
