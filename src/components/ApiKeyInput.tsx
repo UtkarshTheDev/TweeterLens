@@ -60,10 +60,20 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
       transition={{ duration: 0.5 }}
       className="w-full max-w-xl mx-auto mb-8"
     >
-      <Card className="border border-white/10 bg-gradient-to-br from-gray-900/80 via-black/90 to-gray-900/80 shadow-xl">
+      <Card className="border border-white/10 bg-gradient-to-br from-zinc-900/80 via-black/95 to-zinc-900/80 shadow-xl relative overflow-hidden">
+        {/* Subtle gradient background animation */}
+        <div className="absolute inset-0 -z-10 opacity-20">
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-blue-600/10 animate-gradient"
+            style={{ backgroundSize: "200% 200%" }}
+          />
+        </div>
+
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Key className="h-5 w-5 text-blue-400" />
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-indigo-500/10 flex items-center justify-center">
+              <Key className="h-5 w-5 text-indigo-400" />
+            </div>
             <CardTitle className="text-xl font-semibold text-white">
               Social Data API Key
             </CardTitle>
@@ -77,13 +87,13 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
         <CardContent>
           <div className="flex flex-col gap-4">
             {isKeySaved ? (
-              <div className="flex items-center gap-2 text-green-500 bg-green-500/10 rounded-md px-3 py-2">
-                <CheckCircle className="h-5 w-5" />
+              <div className="flex items-center gap-2 text-indigo-200 bg-indigo-500/10 rounded-md px-3 py-2">
+                <CheckCircle className="h-5 w-5 text-indigo-400" />
                 <span>API key has been saved successfully!</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-amber-500 bg-amber-500/10 rounded-md px-3 py-2">
-                <Info className="h-5 w-5" />
+              <div className="flex items-center gap-2 text-purple-200 bg-purple-500/10 rounded-md px-3 py-2">
+                <Info className="h-5 w-5 text-purple-400" />
                 <span>
                   Please enter your Social Data API key to use this application
                 </span>
@@ -96,11 +106,11 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                 placeholder="Enter your Social Data API key"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="flex-grow bg-gray-950/50 border-white/10 text-white"
+                className="flex-grow bg-black/40 border-white/10 text-white focus:border-indigo-500/50 focus:ring-indigo-500/20"
               />
               <Button
                 onClick={handleSaveApiKey}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white"
                 disabled={!apiKey.trim()}
               >
                 Save
@@ -116,30 +126,35 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
               )}
             </div>
 
-            <div className="text-xs text-gray-400 bg-gray-800/20 p-2 rounded-md border border-gray-800">
-              <p className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-3 h-3 text-blue-400"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <strong>Security Note:</strong> Your API key is stored only in
-                your browser's local storage and is only sent directly to the
-                Social Data API. This app doesn't use any server-side API keys.
+            <div className="text-xs text-gray-400 bg-black/30 p-3 rounded-md border border-white/5">
+              <p className="flex items-center gap-2">
+                <div className="p-1 rounded-full bg-indigo-900/30">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-3 h-3 text-indigo-400"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <span>
+                  <strong className="text-indigo-300">Security Note:</strong>{" "}
+                  Your API key is stored only in your browser's local storage
+                  and is only sent directly to the Social Data API. This app
+                  doesn't use any server-side API keys.
+                </span>
               </p>
             </div>
 
             <div>
               <button
                 onClick={() => setShowInstructions(!showInstructions)}
-                className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+                className="flex items-center gap-2 text-sm text-indigo-400 hover:text-blue-300 transition-colors"
               >
                 {showInstructions ? (
                   <ChevronUp className="h-4 w-4" />
@@ -157,9 +172,9 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="mt-4 text-sm text-gray-300 bg-gray-800/30 p-4 rounded-md space-y-3"
+                  className="mt-4 text-sm text-gray-300 bg-black/40 p-4 rounded-md space-y-3 border border-white/5"
                 >
-                  <h3 className="font-medium text-blue-400">
+                  <h3 className="font-medium text-indigo-400">
                     Steps to get your Social Data API key:
                   </h3>
                   <ol className="list-decimal pl-5 space-y-2">
@@ -169,7 +184,7 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                         href="https://socialdata.tools"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline inline-flex items-center gap-1"
+                        className="text-indigo-400 hover:underline inline-flex items-center gap-1"
                       >
                         socialdata.tools{" "}
                         <ExternalLink className="h-3 w-3 inline" />

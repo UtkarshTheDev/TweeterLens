@@ -69,11 +69,19 @@ export const TweetData = ({ data }: TweetDataProps) => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card className="w-full border-white/10 bg-black/60 backdrop-blur-xl">
+      <Card className="w-full border-white/10 bg-gradient-to-br from-zinc-900/80 via-black/95 to-zinc-900/80 backdrop-blur-xl relative overflow-hidden">
+        {/* Subtle gradient background animation */}
+        <div className="absolute inset-0 -z-10 opacity-10">
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-blue-600/10 animate-gradient"
+            style={{ backgroundSize: "200% 200%" }}
+          />
+        </div>
+
         <CardHeader className="mb-2 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white">
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">
                 Raw Tweet
               </span>{" "}
               Data
@@ -99,7 +107,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
             return (
               <Card
                 key={tweetKey}
-                className="overflow-hidden border-white/10 bg-black/40 hover:border-blue-500/50"
+                className="overflow-hidden border-white/10 bg-black/40 hover:border-indigo-500/50"
               >
                 <CardHeader
                   className="cursor-pointer p-4"
@@ -118,13 +126,13 @@ export const TweetData = ({ data }: TweetDataProps) => {
                           alt={tweet.user.name}
                         />
                         <AvatarFallback>
-                          <User className="h-5 w-5 text-blue-400/70" />
+                          <User className="h-5 w-5 text-indigo-400/70" />
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <Avatar className="h-10 w-10 bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                      <Avatar className="h-10 w-10 bg-gradient-to-br from-indigo-500/20 to-blue-500/20">
                         <AvatarFallback>
-                          <User className="h-5 w-5 text-blue-400/70" />
+                          <User className="h-5 w-5 text-indigo-400/70" />
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -140,7 +148,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                         {tweet.user?.verified && (
                           <Badge
                             variant="outline"
-                            className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 p-0"
+                            className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 p-0"
                           >
                             <svg
                               viewBox="0 0 24 24"
@@ -171,7 +179,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="rounded-full bg-gray-800/50 p-1.5 text-gray-400 hover:bg-gray-700/50 hover:text-white"
+                      className="rounded-full bg-black/50 p-1.5 text-gray-400 hover:bg-indigo-900/30 hover:text-indigo-300"
                     >
                       {expandedTweet === (tweet.id_str || tweet.id) ? (
                         <ChevronUp className="h-4 w-4" />
@@ -184,25 +192,25 @@ export const TweetData = ({ data }: TweetDataProps) => {
 
                 <CardFooter className="flex items-center justify-between border-t border-white/5 px-4 py-2">
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1 text-xs text-indigo-300">
                       <MessageCircle className="h-3.5 w-3.5" />
                       <span>{tweet.reply_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1 text-xs text-blue-300">
                       <Repeat className="h-3.5 w-3.5" />
                       <span>{tweet.retweet_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1 text-xs text-purple-300">
                       <Heart className="h-3.5 w-3.5" />
                       <span>{tweet.favorite_count || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1 text-xs text-blue-300">
                       <Bookmark className="h-3.5 w-3.5" />
                       <span>{tweet.bookmark_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1 text-xs text-indigo-300">
                       <Eye className="h-3.5 w-3.5" />
                       <span>{tweet.views_count || 0}</span>
                     </div>
@@ -338,12 +346,12 @@ export const TweetData = ({ data }: TweetDataProps) => {
 
                               {tweet.user.url && (
                                 <div className="mt-2 flex items-center gap-2">
-                                  <Link className="h-3 w-3 text-blue-400" />
+                                  <Link className="h-3 w-3 text-indigo-400" />
                                   <a
                                     href={tweet.user.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-blue-400 hover:underline"
+                                    className="flex items-center gap-1 text-indigo-400 hover:underline"
                                   >
                                     {tweet.user.url}
                                     <ExternalLink className="h-2.5 w-2.5" />
@@ -369,7 +377,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                                         <Badge
                                           key={`${tweetKey}-tag-${i}`}
                                           variant="outline"
-                                          className="rounded-full bg-blue-900/30 px-2 py-0.5 text-blue-300"
+                                          className="rounded-full bg-indigo-900/30 px-2 py-0.5 text-indigo-300"
                                         >
                                           #{tag.text}
                                         </Badge>
@@ -390,7 +398,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                                         <Badge
                                           key={`${tweetKey}-mention-${i}`}
                                           variant="outline"
-                                          className="rounded-full bg-purple-900/30 px-2 py-0.5 text-purple-300"
+                                          className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-emerald-300"
                                         >
                                           @{mention.screen_name}
                                         </Badge>
@@ -411,7 +419,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                                           href={url.expanded_url}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="flex items-center gap-1 text-blue-400 hover:underline"
+                                          className="flex items-center gap-1 text-indigo-400 hover:underline"
                                         >
                                           <Link className="h-3 w-3" />
                                           {url.display_url}

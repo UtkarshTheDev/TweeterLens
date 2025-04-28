@@ -12,6 +12,11 @@ import {
   PaintBucket,
   ChevronDown,
   Check,
+  MessageCircle,
+  Repeat,
+  Heart,
+  Bookmark,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toPng } from "html-to-image";
@@ -352,17 +357,19 @@ export const TwitterFeed = () => {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="w-full max-w-xl"
         >
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-white/10 bg-gradient-to-r from-gray-900/80 to-black/80 backdrop-blur-xl">
+          <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-white/10 bg-gradient-to-r from-black/90 to-zinc-900/70 backdrop-blur-xl">
             {/* Animated background */}
-            <div className="absolute inset-0 -z-10 opacity-30">
+            <div className="absolute inset-0 -z-10 opacity-20">
               <div
-                className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 animate-gradient"
+                className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-blue-600/20 animate-gradient"
                 style={{ backgroundSize: "200% 200%" }}
               />
             </div>
 
             <div className="relative flex items-center px-4 py-3">
-              <Search className="mr-3 h-5 w-5 text-blue-400" />
+              <div className="p-1.5 bg-indigo-500/10 rounded-lg mr-3">
+                <Search className="h-5 w-5 text-indigo-400" />
+              </div>
 
               <Input
                 type="text"
@@ -386,9 +393,9 @@ export const TwitterFeed = () => {
                   onClick={handleSearch}
                   className={`relative overflow-hidden ml-2 rounded-xl ${
                     apiKey
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                      ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
                       : "bg-gray-700 text-gray-300"
-                  } font-medium px-6 py-2 shadow-xl hover:shadow-blue-500/25`}
+                  } font-medium px-6 py-2 shadow-xl hover:shadow-indigo-500/25`}
                   disabled={isLoading || !apiKey}
                 >
                   {isLoading ? (
@@ -438,10 +445,10 @@ export const TwitterFeed = () => {
             className="flex flex-col items-center p-8"
           >
             <div className="relative h-16 w-16">
-              <div className="absolute inset-0 h-full w-full animate-ping rounded-full bg-blue-500 opacity-20"></div>
-              <div className="absolute inset-0 h-full w-full animate-pulse rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-40"></div>
+              <div className="absolute inset-0 h-full w-full animate-ping rounded-full bg-indigo-500 opacity-20"></div>
+              <div className="absolute inset-0 h-full w-full animate-pulse rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 opacity-40"></div>
               <div className="absolute inset-2 flex items-center justify-center rounded-full bg-black">
-                <Twitter className="h-8 w-8 animate-pulse text-blue-400" />
+                <Twitter className="h-8 w-8 animate-pulse text-indigo-400" />
               </div>
             </div>
             <p className="mt-4 text-gray-400">Fetching Twitter data...</p>
@@ -453,7 +460,7 @@ export const TwitterFeed = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md rounded-xl border border-red-500/20 bg-gradient-to-r from-red-950/20 to-black/60 p-6 text-center backdrop-blur-xl"
+            className="w-full max-w-md rounded-xl border border-red-500/20 bg-gradient-to-r from-black/80 to-red-950/20 p-6 text-center backdrop-blur-xl"
           >
             <div className="mb-2 flex justify-center">
               <div className="rounded-full bg-red-500/10 p-3">
@@ -488,7 +495,7 @@ export const TwitterFeed = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
-            className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-gray-900/80 via-black/90 to-gray-900/80 p-6 backdrop-blur-xl shadow-2xl"
+            className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900/80 via-black/95 to-zinc-900/80 p-6 backdrop-blur-xl shadow-2xl"
           >
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -501,7 +508,7 @@ export const TwitterFeed = () => {
                       repeat: Infinity,
                       repeatType: "reverse",
                     }}
-                    className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text bg-[size:200%] text-transparent"
+                    className="bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 bg-clip-text bg-[size:200%] text-transparent"
                   >
                     @{searchUsername}
                   </motion.span>
@@ -525,7 +532,7 @@ export const TwitterFeed = () => {
                         variant="outline"
                         className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
                       >
-                        <PaintBucket className="h-4 w-4 text-blue-400" />
+                        <PaintBucket className="h-4 w-4 text-indigo-400" />
                         <span>{selectedTheme.name}</span>
                         <ChevronDown className="h-3 w-3 opacity-70" />
                       </Button>
@@ -545,7 +552,7 @@ export const TwitterFeed = () => {
                         onClick={() => setSelectedTheme(theme)}
                       >
                         {theme.name === selectedTheme.name && (
-                          <Check className="h-4 w-4 text-blue-400" />
+                          <Check className="h-4 w-4 text-indigo-400" />
                         )}
                         <span>{theme.name}</span>
                       </DropdownMenuItem>
@@ -564,7 +571,7 @@ export const TwitterFeed = () => {
                         variant="outline"
                         className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
                       >
-                        <Calendar className="h-4 w-4 text-purple-400" />
+                        <Calendar className="h-4 w-4 text-blue-400" />
                         <span>{selectedYear}</span>
                         <ChevronDown className="h-3 w-3 opacity-70" />
                       </Button>
@@ -584,7 +591,7 @@ export const TwitterFeed = () => {
                         onClick={() => setSelectedYear(year)}
                       >
                         {year === selectedYear && (
-                          <Check className="h-4 w-4 text-purple-400" />
+                          <Check className="h-4 w-4 text-blue-400" />
                         )}
                         <span>{year}</span>
                       </DropdownMenuItem>
@@ -600,7 +607,7 @@ export const TwitterFeed = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-indigo-500/20 hover:border-indigo-500/50"
                     onClick={handleExportImage}
                   >
                     <Download className="h-4 w-4" />
@@ -616,7 +623,7 @@ export const TwitterFeed = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-purple-500/20 hover:border-purple-500/50"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50"
                     onClick={handleCopyImage}
                   >
                     <Camera className="h-4 w-4" />
@@ -764,7 +771,7 @@ export const TwitterFeed = () => {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="mt-6 rounded-xl border border-white/10 bg-gradient-to-r from-gray-900/40 to-black/40 backdrop-blur-xl">
+              <Card className="mt-6 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 pt-0">
                   <h3 className="text-sm font-medium text-gray-300">
                     Tweet Stats
@@ -775,8 +782,8 @@ export const TwitterFeed = () => {
                   <motion.div
                     whileHover={{
                       scale: 1.03,
-                      boxShadow: "0 0 20px rgba(59, 130, 246, 0.2)",
-                      borderColor: "rgba(59, 130, 246, 0.4)",
+                      boxShadow: "0 0 20px rgba(79, 70, 229, 0.2)",
+                      borderColor: "rgba(79, 70, 229, 0.4)",
                     }}
                     className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
                   >
@@ -790,8 +797,8 @@ export const TwitterFeed = () => {
                   <motion.div
                     whileHover={{
                       scale: 1.03,
-                      boxShadow: "0 0 20px rgba(236, 72, 153, 0.2)",
-                      borderColor: "rgba(236, 72, 153, 0.4)",
+                      boxShadow: "0 0 20px rgba(99, 102, 241, 0.2)",
+                      borderColor: "rgba(99, 102, 241, 0.4)",
                     }}
                     className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
                   >
@@ -806,8 +813,8 @@ export const TwitterFeed = () => {
                   <motion.div
                     whileHover={{
                       scale: 1.03,
-                      boxShadow: "0 0 20px rgba(99, 102, 241, 0.2)",
-                      borderColor: "rgba(99, 102, 241, 0.4)",
+                      boxShadow: "0 0 20px rgba(67, 56, 202, 0.2)",
+                      borderColor: "rgba(67, 56, 202, 0.4)",
                     }}
                     className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
                   >
@@ -827,8 +834,8 @@ export const TwitterFeed = () => {
                   <motion.div
                     whileHover={{
                       scale: 1.03,
-                      boxShadow: "0 0 20px rgba(139, 92, 246, 0.2)",
-                      borderColor: "rgba(139, 92, 246, 0.4)",
+                      boxShadow: "0 0 20px rgba(20, 184, 166, 0.2)",
+                      borderColor: "rgba(20, 184, 166, 0.4)",
                     }}
                     className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
                   >
@@ -842,8 +849,8 @@ export const TwitterFeed = () => {
                   <motion.div
                     whileHover={{
                       scale: 1.03,
-                      boxShadow: "0 0 20px rgba(16, 185, 129, 0.2)",
-                      borderColor: "rgba(16, 185, 129, 0.4)",
+                      boxShadow: "0 0 20px rgba(99, 102, 241, 0.2)",
+                      borderColor: "rgba(99, 102, 241, 0.4)",
                     }}
                     className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
                   >
@@ -883,8 +890,8 @@ export const TwitterFeed = () => {
                   <motion.div
                     whileHover={{
                       scale: 1.03,
-                      boxShadow: "0 0 20px rgba(236, 72, 153, 0.2)",
-                      borderColor: "rgba(236, 72, 153, 0.4)",
+                      boxShadow: "0 0 20px rgba(99, 102, 241, 0.2)",
+                      borderColor: "rgba(99, 102, 241, 0.4)",
                     }}
                     className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
                   >
@@ -938,7 +945,7 @@ export const TwitterFeed = () => {
               {/* Hashtags Section */}
               {(data as TwitterStatsResponse).topHashtags &&
                 (data as TwitterStatsResponse).topHashtags.length > 0 && (
-                  <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-gray-900/40 to-black/40 backdrop-blur-xl">
+                  <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
                     <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
                       <h3 className="text-sm font-medium text-gray-300">
                         Top Hashtags
@@ -954,7 +961,7 @@ export const TwitterFeed = () => {
                             <Badge
                               key={index}
                               variant="outline"
-                              className="px-2 py-1 rounded-full bg-blue-900/20 text-blue-400 hover:bg-blue-900/30"
+                              className="px-2 py-1 rounded-full bg-indigo-900/20 text-indigo-400 hover:bg-indigo-900/30"
                             >
                               #{tag.tag}
                               <span className="ml-1 text-xs text-gray-400">
@@ -1002,7 +1009,7 @@ export const Tweets = ({ data }: { data: any }) => {
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
             ) : (
-              <Avatar className="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-500 text-white text-2xl font-bold">
+              <Avatar className="h-16 w-16 bg-gradient-to-br from-indigo-500 to-blue-500 text-white text-2xl font-bold">
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
             )}

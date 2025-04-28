@@ -145,26 +145,28 @@ export default function TweetsPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-black">
-      {/* Animated gradient background */}
+    <div className="relative min-h-screen">
+      {/* New background matching the main page */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-black to-purple-900/20 animate-gradient" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.8),rgba(0,0,0,1))]" />
+        <div className="relative h-full w-full bg-black">
+          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+          <div className="absolute left-0 right-0 top-[-10%] h-[1000px] w-[1000px] rounded-full bg-[radial-gradient(circle_400px_at_50%_300px,#fbfbfb36,#000)]"></div>
+        </div>
       </div>
 
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-black/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-10 border-b border-white/10 bg-black/30 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Twitter className="h-8 w-8 text-blue-400" />
-              <h1 className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-2xl font-bold text-transparent">
+              <Twitter className="h-8 w-8 text-indigo-400" />
+              <h1 className="bg-gradient-to-r from-indigo-300 to-blue-300 bg-clip-text text-2xl font-bold text-transparent">
                 Raw Tweets
               </h1>
             </div>
 
             <a
               href="/"
-              className="rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm text-white transition-all hover:border-blue-500/50"
+              className="rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm text-white transition-all hover:border-indigo-500/50"
             >
               Back to Home
             </a>
@@ -177,43 +179,46 @@ export default function TweetsPage() {
           <h1 className="text-2xl font-bold mb-6">Twitter Feed Visualizer</h1>
 
           <div className="mb-6">
-            <div className="relative overflow-hidden rounded-xl shadow-2xl border border-white/10 bg-gradient-to-r from-gray-900/80 to-black/80 backdrop-blur-xl">
+            <div className="relative overflow-hidden rounded-xl shadow-2xl border border-white/10 bg-gradient-to-r from-black/90 to-zinc-900/70 backdrop-blur-xl">
               {/* Animated background */}
-              <div className="absolute inset-0 -z-10 opacity-30">
+              <div className="absolute inset-0 -z-10 opacity-20">
                 <div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 animate-gradient"
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-blue-600/20 animate-gradient"
                   style={{ backgroundSize: "200% 200%" }}
                 />
               </div>
 
               <div className="relative flex items-center p-2">
                 <div className="relative flex-1 flex items-center">
-                  <SearchIcon className="absolute left-3 h-5 w-5 text-blue-400" />
+                  <div className="absolute left-3 flex items-center justify-center">
+                    <div className="p-1 bg-indigo-500/10 rounded-lg">
+                      <SearchIcon className="h-4 w-4 text-indigo-400" />
+                    </div>
+                  </div>
                   <Input
                     type="text"
                     placeholder="Enter Twitter username..."
                     value={username}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    className="w-full pl-10 bg-transparent border-none text-white placeholder:text-gray-400 focus:ring-0 text-lg py-2"
+                    className="w-full pl-12 bg-transparent border-none text-white placeholder:text-gray-400 focus:ring-0 text-lg py-2"
                     disabled={loading || isRefreshing}
                   />
                 </div>
 
                 <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="ml-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <Button
                     onClick={handleSearch}
-                    disabled={loading || isRefreshing || !username.trim()}
-                    className="relative overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-6 py-2.5 rounded-lg shadow-xl hover:shadow-blue-500/25"
+                    className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium px-6 py-2.5 rounded-lg shadow-xl hover:shadow-indigo-500/25"
+                    disabled={loading || isRefreshing}
                   >
                     {loading ? (
                       <div className="flex items-center gap-2">
-                        <Spinner className="mr-2 h-4 w-4" />
-                        <span>Searching...</span>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Loading...</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -222,7 +227,7 @@ export default function TweetsPage() {
                       </div>
                     )}
 
-                    {/* Shine effect */}
+                    {/* Button shine effect */}
                     <div className="absolute inset-0 -z-10 overflow-hidden rounded-lg">
                       <div
                         className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
@@ -231,67 +236,19 @@ export default function TweetsPage() {
                     </div>
                   </Button>
                 </motion.div>
-
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="ml-2"
-                >
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleForceRefresh}
-                          disabled={
-                            isRefreshing || loading || !username.trim() || !data
-                          }
-                          className="bg-black/30 border-white/10 hover:bg-purple-500/20 hover:border-purple-500/50"
-                        >
-                          <RefreshCw
-                            className={`h-4 w-4 ${
-                              isRefreshing ? "animate-spin" : ""
-                            }`}
-                          />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-gray-900/90 border-white/10 text-white">
-                        <p>
-                          {data?.payment_error
-                            ? "API limit reached. Refreshing may not fetch new tweets."
-                            : "Force refresh all tweets"}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </motion.div>
               </div>
+
+              {validationMessage && (
+                <div className="p-2 text-red-400 text-sm">
+                  {validationMessage}
+                </div>
+              )}
             </div>
-
-            {validationMessage && (
-              <motion.p
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-2 text-sm text-red-500"
-              >
-                {validationMessage}
-              </motion.p>
-            )}
-
-            {data?.payment_error && (
-              <Alert
-                variant="destructive"
-                className="mt-4 bg-red-950/20 border-red-500/20"
-              >
-                <AlertDescription>{data.payment_error}</AlertDescription>
-              </Alert>
-            )}
           </div>
 
           {error && (
             <div
-              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
+              className="bg-black/70 border border-red-400/30 text-red-400 px-4 py-3 rounded-lg relative mb-6"
               role="alert"
             >
               <span className="block sm:inline">{error}</span>
@@ -355,9 +312,19 @@ export default function TweetsPage() {
               href="https://twitter.com/UtkarshTheDev"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
+              className="text-indigo-400 hover:underline"
             >
               Utkarsh
+            </a>
+          </p>
+          <p className="text-gray-400">
+            <a
+              href="https://github.com/UtkarshTheDev/TweeterLens"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-400 hover:underline"
+            >
+              GitHub
             </a>
           </p>
         </div>
