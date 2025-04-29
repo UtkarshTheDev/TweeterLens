@@ -3,11 +3,15 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import {
-  Search as SearchIcon,
-  Twitter,
+  Search,
   ArrowRight,
-  Loader2,
   RefreshCw,
+  User,
+  Calendar,
+  Filter,
+  AlertCircle,
+  Twitter,
+  Loader2,
 } from "lucide-react";
 import { TweetData } from "@/components/TweetData";
 import { Spinner } from "@/components/ui/spinner";
@@ -21,12 +25,82 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ApiKeyInput } from "@/components/ApiKeyInput";
+import { PartialTweet, TwitterUser } from "@/lib/twitter-utils";
 
-const fetchTweets = async (username: string, forceRefresh = false) => {
-  if (!username || username.trim() === "") return null;
+interface UserProfileResponse {
+  user: TwitterUser;
+  available_years: number[];
+}
+
+interface TwitterResponse {
+  user: TwitterUser;
+  tweets: PartialTweet[];
+  total_fetched: number;
+  total_returned: number;
+  fetch_log: string[];
+  total_profile_tweets: number;
+  payment_error?: string;
+  year?: number | string;
+  available_years?: number[];
+}
+
+// Function to fetch just the user profile and available years
+const fetchUserProfile = async (
+  username: string,
+  apiKey: string
+): Promise<UserProfileResponse> => {
+  if (!username || username.trim() === "") {
+    throw new Error("Username is required");
+  }
 
   const url = new URL("/api/twitter", window.location.origin);
   url.searchParams.append("username", username.trim());
+  url.searchParams.append("apiKey", apiKey);
+  url.searchParams.append("profile_only", "true");
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to fetch user profile");
+  }
+  return res.json();
+};
+
+// API call to fetch tweets for a specific year after profile is fetched
+const fetchTweets = async (
+  username: string,
+  apiKey: string,
+  year?: string | number,
+  forceRefresh = false
+): Promise<TwitterResponse> => {
+  if (!username || username.trim() === "") {
+    throw new Error("Username is required");
+  }
+
+  const url = new URL("/api/twitter", window.location.origin);
+  url.searchParams.append("username", username.trim());
+  url.searchParams.append("apiKey", apiKey);
+
+  if (year && year !== "all") {
+    url.searchParams.append("year", year.toString());
+  }
 
   if (forceRefresh) {
     url.searchParams.append("force", "true");
@@ -44,10 +118,26 @@ export default function TweetsPage() {
   const [username, setUsername] = useState<string>("");
   const [validationMessage, setValidationMessage] = useState<string>("");
   const [data, setData] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [selectedYear, setSelectedYear] = useState<string>(
+    new Date().getFullYear().toString()
+  );
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [apiKey, setApiKey] = useState<string>("");
+  const [yearSelectionPrompt, setYearSelectionPrompt] =
+    useState<boolean>(false);
+
+  // Get API key from localStorage on component mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("socialdataApiKey");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
 
   const handleSearch = async () => {
     // Validate username is not empty
@@ -56,17 +146,79 @@ export default function TweetsPage() {
       return;
     }
 
+    // Validate API key exists
+    if (!apiKey) {
+      setValidationMessage(
+        "API key is required. Please add it in the home page settings."
+      );
+      return;
+    }
+
     setValidationMessage(""); // Clear validation message
     setHasSearched(true);
     setLoading(true);
     setError(null);
+    setYearSelectionPrompt(false);
+    setData(null);
 
     try {
-      const result = await fetchTweets(username);
+      // First fetch just the user profile to get available years
+      const profileResult = await fetchUserProfile(username, apiKey);
+      setUserProfile(profileResult.user);
+
+      // Set available years from profile response
+      if (
+        profileResult.available_years &&
+        profileResult.available_years.length > 0
+      ) {
+        setAvailableYears(profileResult.available_years);
+
+        // Set default year to most recent year available
+        const mostRecentYear = Math.max(
+          ...profileResult.available_years
+        ).toString();
+        setSelectedYear(mostRecentYear);
+
+        // Show year selection prompt before fetching tweets
+        setYearSelectionPrompt(true);
+        setLoading(false);
+        return;
+      } else {
+        // If no years information available, proceed with default year
+        const result = await fetchTweets(username, apiKey, selectedYear, false);
+        setData(result);
+
+        if (result.available_years && result.available_years.length > 0) {
+          setAvailableYears(result.available_years);
+        }
+      }
+    } catch (error: unknown) {
+      console.error("Error fetching data:", error);
+      setError(error instanceof Error ? error.message : "Failed to fetch data");
+      setData(null);
+      setUserProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFetchTweetsForYear = async () => {
+    if (!username || !apiKey) return;
+
+    setLoading(true);
+    setError(null);
+    setYearSelectionPrompt(false);
+
+    try {
+      const result = await fetchTweets(username, apiKey, selectedYear, false);
       setData(result);
-    } catch (err: any) {
-      console.error("Error fetching tweets:", err);
-      setError(err.message || "Failed to fetch tweets");
+    } catch (error: unknown) {
+      console.error("Error fetching tweets for year:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch tweets for selected year"
+      );
       setData(null);
     } finally {
       setLoading(false);
@@ -90,30 +242,46 @@ export default function TweetsPage() {
     }
   };
 
-  const handleForceRefresh = async () => {
-    if (!username || username.trim() === "") {
-      setValidationMessage("Please enter a username");
+  const handleYearChange = async (year: string) => {
+    if (year === selectedYear) return;
+
+    setSelectedYear(year);
+
+    // If year selection prompt is active, don't automatically fetch
+    if (yearSelectionPrompt) {
       return;
     }
 
-    setValidationMessage("");
-    setError(null);
-    setIsRefreshing(true);
+    // Only fetch data if we've already searched for a username
+    if (hasSearched && username && apiKey) {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const result = await fetchTweets(username, true);
-      setData(result);
-    } catch (err: any) {
-      console.error("Error refreshing tweets:", err);
-      setError(err.message || "Failed to refresh tweets");
-    } finally {
-      setIsRefreshing(false);
+      try {
+        const result = await fetchTweets(username, apiKey, year, false);
+        setData(result);
+      } catch (error: unknown) {
+        console.error("Error fetching tweets for year:", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch tweets for selected year"
+        );
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleLoadAllTweets = async () => {
     if (!username || username.trim() === "") {
       setValidationMessage("Please enter a username");
+      return;
+    }
+
+    if (!apiKey) {
+      setValidationMessage("API key is required");
       return;
     }
 
@@ -127,6 +295,11 @@ export default function TweetsPage() {
       url.searchParams.append("username", username.trim());
       url.searchParams.append("force", "true");
       url.searchParams.append("max_pages", "500"); // Set a high limit
+      url.searchParams.append("apiKey", apiKey);
+
+      if (selectedYear && selectedYear !== "all") {
+        url.searchParams.append("year", selectedYear);
+      }
 
       const res = await fetch(url);
       if (!res.ok) {
@@ -136,12 +309,50 @@ export default function TweetsPage() {
 
       const result = await res.json();
       setData(result);
+
+      // Update available years after loading all tweets
+      if (result.available_years && result.available_years.length > 0) {
+        setAvailableYears(result.available_years);
+      }
     } catch (err: any) {
       console.error("Error loading all tweets:", err);
       setError(err.message || "Failed to load all tweets");
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  // Generate year options for the dropdown
+  const renderYearOptions = () => {
+    const options = [
+      <SelectItem key="all" value="all">
+        All Years
+      </SelectItem>,
+    ];
+
+    // Add available years from API response
+    if (availableYears.length > 0) {
+      // Sort years in descending order (newest first)
+      const sortedYears = [...availableYears].sort((a, b) => b - a);
+
+      sortedYears.forEach((year) => {
+        options.push(
+          <SelectItem key={year} value={year.toString()}>
+            {year}
+          </SelectItem>
+        );
+      });
+    } else {
+      // If no available years yet, add current year
+      const currentYear = new Date().getFullYear();
+      options.push(
+        <SelectItem key={currentYear} value={currentYear.toString()}>
+          {currentYear}
+        </SelectItem>
+      );
+    }
+
+    return options;
   };
 
   return (
@@ -178,6 +389,15 @@ export default function TweetsPage() {
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold mb-6">Twitter Feed Visualizer</h1>
 
+          {!apiKey && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                API key is required. Please add it on the home page first.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="mb-6">
             <div className="relative overflow-hidden rounded-xl shadow-2xl border border-white/10 bg-gradient-to-r from-black/90 to-zinc-900/70 backdrop-blur-xl">
               {/* Animated background */}
@@ -188,63 +408,174 @@ export default function TweetsPage() {
                 />
               </div>
 
-              <div className="relative flex items-center p-2">
-                <div className="relative flex-1 flex items-center">
-                  <div className="absolute left-3 flex items-center justify-center">
-                    <div className="p-1 bg-indigo-500/10 rounded-lg">
-                      <SearchIcon className="h-4 w-4 text-indigo-400" />
+              <div className="p-4">
+                <div className="flex flex-col gap-4">
+                  <div className="relative flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <div className="absolute left-3 flex items-center justify-center">
+                        <div className="p-1 bg-indigo-500/10 rounded-lg">
+                          <User className="h-4 w-4 text-indigo-400" />
+                        </div>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="Enter Twitter username..."
+                        value={username}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyDown}
+                        className="w-full pl-12 bg-transparent border border-white/10 text-white placeholder:text-gray-400 focus:ring-1 focus:ring-indigo-500 text-lg py-2"
+                        disabled={loading || isRefreshing}
+                      />
                     </div>
+
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        onClick={handleSearch}
+                        className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium px-6 py-2.5 rounded-lg shadow-xl hover:shadow-indigo-500/25"
+                        disabled={loading || isRefreshing || !apiKey}
+                      >
+                        {loading ? (
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Loading...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span>Search</span>
+                            <ArrowRight className="h-4 w-4" />
+                          </div>
+                        )}
+
+                        {/* Button shine effect */}
+                        <div className="absolute inset-0 -z-10 overflow-hidden rounded-lg">
+                          <div
+                            className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                            style={{ transform: "rotate(-45deg)" }}
+                          ></div>
+                        </div>
+                      </Button>
+                    </motion.div>
                   </div>
-                  <Input
-                    type="text"
-                    placeholder="Enter Twitter username..."
-                    value={username}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    className="w-full pl-12 bg-transparent border-none text-white placeholder:text-gray-400 focus:ring-0 text-lg py-2"
-                    disabled={loading || isRefreshing}
-                  />
-                </div>
 
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    onClick={handleSearch}
-                    className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium px-6 py-2.5 rounded-lg shadow-xl hover:shadow-indigo-500/25"
-                    disabled={loading || isRefreshing}
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Loading...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span>Search</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </div>
-                    )}
-
-                    {/* Button shine effect */}
-                    <div className="absolute inset-0 -z-10 overflow-hidden rounded-lg">
-                      <div
-                        className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                        style={{ transform: "rotate(-45deg)" }}
-                      ></div>
+                  {validationMessage && (
+                    <div className="p-2 text-red-400 text-sm">
+                      {validationMessage}
                     </div>
-                  </Button>
-                </motion.div>
-              </div>
-
-              {validationMessage && (
-                <div className="p-2 text-red-400 text-sm">
-                  {validationMessage}
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
+
+          {/* Year selection prompt after user search */}
+          {yearSelectionPrompt && userProfile && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-6 rounded-xl border border-white/10 bg-gradient-to-r from-indigo-900/20 to-blue-900/20 backdrop-blur-sm"
+            >
+              <div className="flex flex-col gap-6">
+                <div className="flex gap-4 items-center">
+                  {userProfile.profile_image_url_https && (
+                    <img
+                      src={userProfile.profile_image_url_https.replace(
+                        "_normal",
+                        ""
+                      )}
+                      alt={userProfile.name}
+                      className="w-16 h-16 rounded-full border border-white/20"
+                    />
+                  )}
+                  <div>
+                    <h3 className="text-xl font-bold text-white">
+                      {userProfile.name}
+                    </h3>
+                    <p className="text-gray-400">@{userProfile.screen_name}</p>
+                    <p className="text-sm text-gray-300 mt-1">
+                      {userProfile.statuses_count.toLocaleString()} tweets ·
+                      Account since{" "}
+                      {new Date(userProfile.created_at).getFullYear()}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium text-indigo-300 mb-3 flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Select a year to fetch tweets
+                  </h3>
+                  <p className="text-gray-300 mb-4">
+                    This account has tweets from{" "}
+                    {availableYears.length > 0
+                      ? Math.min(...availableYears)
+                      : new Date().getFullYear()}{" "}
+                    to{" "}
+                    {availableYears.length > 0
+                      ? Math.max(...availableYears)
+                      : new Date().getFullYear()}
+                    . Selecting a specific year helps reduce API costs and load
+                    times.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="w-full sm:w-64">
+                      <Select
+                        value={selectedYear}
+                        onValueChange={handleYearChange}
+                      >
+                        <SelectTrigger className="bg-black/50 border-white/10 text-white">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-indigo-400" />
+                            <SelectValue placeholder="Select Year" />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                          {renderYearOptions()}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        onClick={handleFetchTweetsForYear}
+                        className="relative overflow-hidden w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-4 w-4" />
+                          <span>Fetch Tweets for {selectedYear}</span>
+                        </div>
+                      </Button>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Display selected year info */}
+          {data && data.year && !yearSelectionPrompt && (
+            <div className="mb-4 text-gray-300 text-sm bg-black/30 p-2 rounded border border-white/5 flex items-center">
+              <Calendar className="h-4 w-4 mr-2 text-indigo-400" />
+              <span>
+                Showing tweets from:{" "}
+                <span className="font-medium text-indigo-300">
+                  {selectedYear === "all" ? "All Years" : selectedYear}
+                </span>
+                {data.available_years && data.available_years.length > 0 && (
+                  <span className="text-gray-400">
+                    {" "}
+                    (Account active since {Math.min(...data.available_years)})
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
 
           {error && (
             <div
@@ -292,14 +623,16 @@ export default function TweetsPage() {
                 </div>
               )}
             </>
-          ) : hasSearched ? (
+          ) : hasSearched && !yearSelectionPrompt ? (
             <div className="text-center py-12 text-gray-500">
               <p>No tweets found. Please check the username and try again.</p>
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              <p>Enter a Twitter username to view tweets.</p>
-            </div>
+            !yearSelectionPrompt && (
+              <div className="text-center py-12 text-gray-500">
+                <p>Enter a Twitter username to view tweets.</p>
+              </div>
+            )
           )}
         </div>
       </main>

@@ -1,15 +1,25 @@
-import { fetchTweetsFromUser, fetchTwitterProfile } from "@/lib/twitter-utils";
+import {
+  fetchTweetsFromUser,
+  fetchTwitterProfile,
+  getCachedTweets,
+  getCachedTweetsByYear,
+  getAvailableYearsFromCache,
+  TwitterUser,
+  PartialTweet,
+} from "@/lib/twitter-utils";
 import { NextResponse } from "next/server";
 
 // Right after the imports, add:
 interface TwitterApiResponse {
-  user: any;
-  tweets: any[];
+  user: TwitterUser;
+  tweets: PartialTweet[];
   total_fetched: number;
   total_returned: number;
   fetch_log: string[];
   total_profile_tweets: number;
   payment_error?: string;
+  year?: number;
+  available_years?: number[];
 }
 
 // API route handler
@@ -22,6 +32,7 @@ export async function GET(request: Request) {
     const maxPagesParam = url.searchParams.get("max_pages");
     const stopDateParam = url.searchParams.get("stopDate");
     const apiKey = url.searchParams.get("apiKey");
+    const yearParam = url.searchParams.get("year");
 
     // Validate username properly
     if (!username || username.trim() === "") {
@@ -48,13 +59,26 @@ export async function GET(request: Request) {
     const limit = limitParam ? parseInt(limitParam) : undefined;
     // Default to 200 pages if not specified (can fetch ~4000 tweets)
     const maxPages = maxPagesParam ? parseInt(maxPagesParam) : 200;
-    const stopDate = stopDateParam ? new Date(stopDateParam) : undefined;
+    const requestedYear = yearParam
+      ? parseInt(yearParam)
+      : new Date().getFullYear();
+
+    // Determine stop date based on year parameter if no explicit stop date
+    let stopDate = stopDateParam ? new Date(stopDateParam) : undefined;
+    if (!stopDate && yearParam) {
+      // If a specific year is requested, go back to beginning of that year
+      stopDate = new Date(requestedYear - 1, 11, 31);
+    } else if (!stopDate) {
+      // Default to stop at the end of previous year
+      const currentYear = new Date().getFullYear();
+      stopDate = new Date(currentYear - 1, 11, 31);
+    }
 
     // Clear cache if force refresh is requested
     const forceRefresh = url.searchParams.get("force") === "true";
 
     console.log(
-      `Fetching tweets for ${normalizedUsername} with limit: ${limit}, maxPages: ${maxPages}, forceRefresh: ${forceRefresh}`
+      `Fetching tweets for ${normalizedUsername} with limit: ${limit}, maxPages: ${maxPages}, year: ${requestedYear}, forceRefresh: ${forceRefresh}`
     );
 
     // Fetch user profile
@@ -64,10 +88,55 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Try to get available years from cache first
+    const cachedYears = await getAvailableYearsFromCache(normalizedUsername);
+
     // Fetch tweets with optional parameters
     const fetchLog: string[] = [];
     let tweets = [];
     let partialResultsError = null;
+
+    // Check if we should try to fetch from cache before making API calls
+    // If forceRefresh is false and a specific year is requested
+    if (!forceRefresh && yearParam && yearParam !== "all") {
+      // Try to get tweets for the requested year from cache
+      const cachedYearTweets = await getCachedTweetsByYear(
+        normalizedUsername,
+        requestedYear
+      );
+
+      if (cachedYearTweets && cachedYearTweets.length > 0) {
+        console.log(
+          `Retrieved ${cachedYearTweets.length} tweets for ${normalizedUsername} in year ${requestedYear} from cache`
+        );
+        fetchLog.push(
+          `Retrieved ${cachedYearTweets.length} tweets for year ${requestedYear} from cache`
+        );
+        tweets = cachedYearTweets;
+
+        // Calculate available years from the cached tweets
+        const availableYears = cachedYears || [];
+
+        // Apply limit if specified and valid
+        const limitedTweets =
+          limit && limit > 0 && limit < tweets.length
+            ? tweets.slice(0, limit)
+            : tweets;
+
+        const response: TwitterApiResponse = {
+          user,
+          tweets: limitedTweets,
+          total_fetched: tweets.length,
+          total_returned: limitedTweets.length,
+          fetch_log: fetchLog,
+          total_profile_tweets: user.statuses_count,
+          year: requestedYear,
+          available_years: availableYears,
+        };
+
+        return NextResponse.json(response);
+      }
+    }
 
     try {
       tweets = await fetchTweetsFromUser(
@@ -93,10 +162,7 @@ export async function GET(request: Request) {
           "API subscription limit reached. Returning partial results from cache.";
 
         // Try to get cached tweets
-        const getCachedTweetsFromUser = await import(
-          "@/lib/twitter-utils"
-        ).then((module) => module.getCachedTweets);
-        const cachedTweets = await getCachedTweetsFromUser(normalizedUsername);
+        const cachedTweets = await getCachedTweets(normalizedUsername);
 
         if (cachedTweets && cachedTweets.length > 0) {
           tweets = cachedTweets;
@@ -113,18 +179,35 @@ export async function GET(request: Request) {
       }
     }
 
+    // Filter tweets by year if specified
+    let filteredTweets = tweets;
+    if (yearParam && yearParam !== "all") {
+      filteredTweets = tweets.filter((tweet) => {
+        const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+        return tweetDate.getFullYear() === requestedYear;
+      });
+    }
+
+    // Calculate available years from tweets
+    const availableYears = Array.from(
+      new Set(
+        tweets.map((tweet) => {
+          const tweetDate = new Date(
+            tweet.tweet_created_at || tweet.created_at
+          );
+          return tweetDate.getFullYear();
+        })
+      )
+    ).sort();
+
     // Apply limit if specified and valid
     const limitedTweets =
-      limit && limit > 0 && limit < tweets.length
-        ? tweets.slice(0, limit)
-        : tweets;
+      limit && limit > 0 && limit < filteredTweets.length
+        ? filteredTweets.slice(0, limit)
+        : filteredTweets;
 
     console.log(
-      `Returning ${limitedTweets.length} of ${
-        tweets.length
-      } fetched tweets for ${normalizedUsername} (${Math.round(
-        (tweets.length / user.statuses_count) * 100
-      )}% coverage)`
+      `Returning ${limitedTweets.length} of ${filteredTweets.length} filtered tweets (from total ${tweets.length}) for ${normalizedUsername} in year ${requestedYear}`
     );
 
     const response: TwitterApiResponse = {
@@ -134,6 +217,8 @@ export async function GET(request: Request) {
       total_returned: limitedTweets.length,
       fetch_log: fetchLog,
       total_profile_tweets: user.statuses_count,
+      year: requestedYear,
+      available_years: availableYears,
     };
 
     // Add a warning if we had a payment error

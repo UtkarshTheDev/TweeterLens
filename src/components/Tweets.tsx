@@ -982,8 +982,8 @@ export const TwitterFeed = () => {
   );
 };
 
-// Add this export for the Tweets component that will be used in the tweets page
-export const Tweets = ({ data }: { data: any }) => {
+// Fix the Tweets component type issue
+export const Tweets = ({ data }: { data: TwitterStatsResponse | null }) => {
   // Extract user data and tweets from the response
   const {
     user,
@@ -1038,6 +1038,16 @@ export const Tweets = ({ data }: { data: any }) => {
           coverage).
         </p>
       )}
+
+      {/* New content */}
+      <p className="text-gray-500 mt-2 mb-4">
+        We couldn&apos;t find any tweets for the search query. Try something
+        else!
+      </p>
+      <p className="text-sm text-gray-400 mt-2">
+        Already using Twitter&apos;s analytics? Our platform provides deeper
+        insights and better data visualization.
+      </p>
     </div>
   );
 };

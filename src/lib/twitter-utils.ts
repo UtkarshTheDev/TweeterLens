@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-// @ts-ignore
+// @ts-expect-error - Redis import missing types but it works
 import ky from "ky";
 
 // Add a type declaration for the ky module
@@ -36,7 +36,7 @@ export const SAFETY_STOP = 300; // Increased from 100 to 300 to fetch more tweet
 
 // Create a function to get a KY instance with the provided API key
 export function getApiClient(apiKey: string) {
-  // @ts-ignore Using any type to avoid ky type issues
+  // @ts-expect-error Using any type to avoid ky type issues
   return (ky as any).extend({
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -90,7 +90,7 @@ export interface PartialTweet {
 }
 
 interface SuccessResponse {
-  tweets: any[];
+  tweets: PartialTweet[];
   next_cursor?: string;
 }
 
@@ -149,7 +149,7 @@ export async function readFromCache<T>(key: string): Promise<T | null> {
 
 export async function writeToCache(
   key: string,
-  value: any,
+  value: unknown,
   ttlSeconds = 3600
 ): Promise<void> {
   try {
@@ -277,15 +277,48 @@ export async function clearCachedTweets(name: string): Promise<void> {
   console.log(`Cleared cache for ${name}`);
 }
 
+/**
+ * Get tweets for a specific user and year from cache
+ */
+export async function getCachedTweetsByYear(
+  name: string,
+  year: number
+): Promise<PartialTweet[] | null> {
+  const tweets = await getCachedTweets(name);
+  if (!tweets) return null;
+
+  // Filter tweets by the requested year
+  return tweets.filter((tweet) => {
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+    return tweetDate.getFullYear() === year;
+  });
+}
+
+// Add this function to get available years from cached tweets
+export async function getAvailableYearsFromCache(
+  name: string
+): Promise<number[] | null> {
+  const tweets = await getCachedTweets(name);
+  if (!tweets || !tweets.length) return null;
+
+  // Extract years from tweets and return unique sorted array
+  const years = tweets.map((tweet) => {
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+    return tweetDate.getFullYear();
+  });
+
+  return Array.from(new Set(years)).sort();
+}
+
 // Add interfaces for the function parameters
 interface FetchFromSocialDataInput {
   username: string;
   max_id?: string;
   cursor?: string;
   runs?: number;
-  collection: Map<string, any>;
+  collection: Map<string, PartialTweet>;
   stopDate?: Date;
-  callback?: (collection: any[]) => void;
+  callback?: (collection: PartialTweet[]) => void;
   maxPages?: number;
   emptyBatchesCount?: number;
   previousSmallestId?: string;
@@ -589,11 +622,11 @@ async function fetchFromSocialData(
 export async function fetchTweetsFromUser(
   name: string,
   stopDate?: Date,
-  callback?: (collection: any[]) => void,
+  callback?: (collection: PartialTweet[]) => void,
   maxPages?: number,
   forceRefresh: boolean = false,
   apiKey: string = ""
-): Promise<any[]> {
+): Promise<PartialTweet[]> {
   try {
     // Clear cache if force refresh requested
     if (forceRefresh) {
@@ -604,7 +637,7 @@ export async function fetchTweetsFromUser(
     const cached = forceRefresh ? null : await getCachedTweets(name);
 
     // Initialize collection with cached tweets if available
-    const collection = new Map<string, any>(
+    const collection = new Map<string, PartialTweet>(
       cached?.map((tweet) => {
         // Ensure we're using id_str consistently
         const idKey = tweet.id_str || tweet.id;

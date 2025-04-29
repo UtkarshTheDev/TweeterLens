@@ -32,8 +32,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { PartialTweet, TwitterUser } from "@/lib/twitter-utils";
+
+interface TwitterData {
+  tweets?: PartialTweet[];
+  user?: TwitterUser;
+  total_fetched?: number;
+  total_returned?: number;
+  year?: string | number;
+  available_years?: number[];
+  next_cursor?: string;
+}
+
 type TweetDataProps = {
-  data: any;
+  data: TwitterData;
 };
 
 export const TweetData = ({ data }: TweetDataProps) => {
@@ -57,13 +69,13 @@ export const TweetData = ({ data }: TweetDataProps) => {
     try {
       const match = source.match(/>([^<]+)</);
       return match ? match[1] : "Twitter";
-    } catch (e) {
+    } catch (_) {
       return "Twitter";
     }
   };
 
   // Function to get a unique identifier for a tweet
-  const getTweetKey = (tweet: any, index: number) => {
+  const getTweetKey = (tweet: PartialTweet, index: number) => {
     return `tweet-${tweet.id_str || tweet.id}-${index}`;
   };
 
@@ -87,22 +99,42 @@ export const TweetData = ({ data }: TweetDataProps) => {
               Data
             </h2>
             <p className="text-sm text-gray-400">
-              Showing {data?.tweets?.length || 0} tweets from the API
+              Showing {data?.tweets?.length || 0} tweets
+              {data?.year && data.year !== "all" && (
+                <span> from {data.year}</span>
+              )}
+              {data?.available_years && data.available_years.length > 0 && (
+                <span className="text-gray-500">
+                  {" "}
+                  (Account active since {Math.min(...data.available_years)})
+                </span>
+              )}
             </p>
           </div>
 
-          {data?.next_cursor && (
-            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-gray-400">
-              <span>Next Cursor:</span>
-              <span className="truncate max-w-[200px] font-mono">
-                {data.next_cursor}
-              </span>
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center">
+            {data?.total_fetched > data?.total_returned && (
+              <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-gray-400">
+                <span>
+                  Showing {data.total_returned} of {data.total_fetched} fetched
+                  tweets
+                </span>
+              </div>
+            )}
+
+            {data?.next_cursor && (
+              <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-gray-400">
+                <span>Next Cursor:</span>
+                <span className="truncate max-w-[200px] font-mono">
+                  {data.next_cursor}
+                </span>
+              </div>
+            )}
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {data?.tweets?.map((tweet: any, index: number) => {
+          {data?.tweets?.map((tweet: PartialTweet, index: number) => {
             const tweetKey = getTweetKey(tweet, index);
             return (
               <Card

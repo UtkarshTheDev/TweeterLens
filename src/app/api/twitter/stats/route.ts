@@ -3,10 +3,11 @@ import {
   redis,
   fetchTweetsFromUser,
   fetchTwitterProfile,
+  PartialTweet,
 } from "@/lib/twitter-utils";
 
 // Generate contribution graph for a specific year
-function generateContributionGraph(tweets: any[], year: number) {
+function generateContributionGraph(tweets: PartialTweet[], year: number) {
   // Create date objects for the start and end of the year
   const startDate = new Date(year, 0, 1);
   const endDate = new Date(year, 11, 31);
@@ -22,7 +23,7 @@ function generateContributionGraph(tweets: any[], year: number) {
   });
 
   // Initialize days with zero counts
-  let currentDate = new Date(startDate);
+  const currentDate = new Date(startDate);
   while (currentDate <= endDate) {
     const dateKey = currentDate.toISOString().split("T")[0];
     postsByDate[dateKey] = 0;
@@ -173,7 +174,7 @@ function generateContributionGraph(tweets: any[], year: number) {
 }
 
 // Calculate user statistics
-function calculateUserStats(tweets: any[], year: number) {
+function calculateUserStats(tweets: PartialTweet[], year: number) {
   // Filter tweets for the specific year
   const yearTweets = tweets.filter((tweet) => {
     const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
@@ -491,6 +492,11 @@ interface TwitterStatsResponse {
   }>;
 }
 
+// Define a type for the hashtag entity
+interface HashtagEntity {
+  text: string;
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const username = searchParams.get("username");
@@ -554,11 +560,14 @@ export async function GET(req: Request) {
     console.log(`Cached stats for ${username} for ${year}`);
 
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in Twitter stats API route:", error);
 
     // Return appropriate error response
-    if (error.message?.includes("Rate limit exceeded")) {
+    if (
+      error instanceof Error &&
+      error.message?.includes("Rate limit exceeded")
+    ) {
       return NextResponse.json(
         { error: "Twitter API rate limit exceeded. Please try again later." },
         { status: 429 }
@@ -566,7 +575,11 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(
-      { error: "Failed to fetch Twitter stats", message: error.message },
+      {
+        error: "Failed to fetch Twitter stats",
+        message:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      },
       { status: 500 }
     );
   }

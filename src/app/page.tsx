@@ -3,8 +3,6 @@ import { TwitterFeed } from "../components/Tweets";
 import {
   Twitter,
   Github,
-  Star,
-  ExternalLink,
   Database,
   Search,
   BarChart2,

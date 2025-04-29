@@ -15,7 +15,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -127,7 +126,7 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
             </div>
 
             <div className="text-xs text-gray-400 bg-black/30 p-3 rounded-md border border-white/5">
-              <p className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <div className="p-1 rounded-full bg-indigo-900/30">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -144,11 +143,11 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                 </div>
                 <span>
                   <strong className="text-indigo-300">Security Note:</strong>{" "}
-                  Your API key is stored only in your browser's local storage
-                  and is only sent directly to the Social Data API. This app
-                  doesn't use any server-side API keys.
+                  Your API key is stored only in your browser&apos;s local
+                  storage and is only sent directly to the Social Data API. This
+                  app doesn&apos;t use any server-side API keys.
                 </span>
-              </p>
+              </div>
             </div>
 
             <div>
@@ -205,10 +204,10 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                   <p className="mt-2 text-gray-400">
                     This application uses the Social Data API to access
                     Twitter/X data because direct Twitter API access has become
-                    expensive. Your API key is only stored in your browser's
-                    local storage (localStorage) and is never sent to our
-                    servers. The key is passed directly to the Social Data API
-                    for authentication.
+                    expensive. Your API key is only stored in your
+                    browser&apos;s local storage (localStorage) and is never
+                    sent to our servers. The key is passed directly to the
+                    Social Data API for authentication.
                   </p>
                 </motion.div>
               )}
