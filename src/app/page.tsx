@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { TwitterFeed } from "../components/Tweets";
 import {
   Twitter,
@@ -7,23 +8,71 @@ import {
   Search,
   BarChart2,
   Zap,
+  ArrowRight,
+  Key,
+  BarChart3,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
+import { ApiKeyInput } from "@/components/ApiKeyInput";
+import { Input } from "@/components/ui/input";
 
 export default function Home() {
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [username, setUsername] = useState("");
+  const [searchUsername, setSearchUsername] = useState("");
+
+  // Check if API key exists on component mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("socialdataApiKey");
+    if (savedApiKey) {
+      setHasApiKey(true);
+    }
+  }, []);
+
+  const handleApiKeySaved = (key: string) => {
+    setHasApiKey(true);
+    setShowApiKeyInput(false);
+  };
+
+  const handleShowApiKeyInput = () => {
+    setShowApiKeyInput(true);
+  };
+
+  const cancelApiConfig = () => {
+    // Only allow cancellation if the user already has an API key
+    if (hasApiKey) {
+      setShowApiKeyInput(false);
+    }
+  };
+
+  const handleSearch = () => {
+    if (username.trim()) {
+      setSearchUsername(username);
+      // Scroll to search section
+      const searchSection = document.getElementById("search");
+      if (searchSection) {
+        searchSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="relative flex min-h-screen flex-col">
-      {/* New background as requested */}
-      <div className="fixed inset-0 -z-10">
-        <div className="relative h-full w-full bg-black">
-          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
-          <div className="absolute left-0 right-0 top-[-10%] h-[1000px] w-[1000px] rounded-full bg-[radial-gradient(circle_400px_at_50%_300px,#fbfbfb36,#000)]"></div>
-        </div>
+      {/* Reduced half-moon gradient - smaller size and less intense */}
+      <div className="absolute top-0 left-0 right-0 -z-10 overflow-hidden h-[70vh]">
+        <div className="absolute left-0 right-0 top-[-5%] h-[800px] w-full rounded-full bg-[radial-gradient(ellipse_at_top,rgba(120,58,240,0.2),transparent_70%)]"></div>
       </div>
 
       {/* Enhanced header with glass morphism */}
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-black/30 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/30 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -33,54 +82,38 @@ export default function Home() {
           >
             <motion.div
               className="flex items-center space-x-3"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <motion.div
-                initial={{ rotate: 0 }}
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 30,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-                className="relative h-10 w-10 flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+                className="relative h-12 w-12 flex items-center justify-center"
               >
-                {/* Glowing orbit effect */}
-                <div className="absolute h-full w-full rounded-full border border-indigo-500/20 animate-pulse" />
-                <div
-                  className="absolute h-[140%] w-[140%] rounded-full border border-blue-500/10"
-                  style={{ animationDelay: "300ms" }}
-                />
+                {/* Modern gradient logo background */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 shadow-lg shadow-purple-500/20" />
 
-                {/* Pulsing gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/80 to-blue-600/80 rounded-full opacity-20 animate-pulse" />
-
-                {/* Icon with animation */}
-                <div className="relative z-10 h-6 w-6 flex items-center justify-center">
+                {/* Professional icon with enhanced animation */}
+                <div className="relative z-10 h-7 w-7 flex items-center justify-center">
                   <motion.div
                     animate={{
-                      scale: [1, 1.2, 1],
-                      opacity: [1, 0.8, 1],
+                      scale: [1, 1.08, 1],
+                      rotate: [0, 2, 0, -2, 0],
                     }}
                     transition={{
-                      duration: 2,
+                      duration: 5,
                       repeat: Infinity,
                       ease: "easeInOut",
                     }}
                   >
-                    <Zap className="h-5 w-5 text-indigo-400" />
+                    <BarChart3 className="h-6 w-6 text-white drop-shadow-md" />
                   </motion.div>
                 </div>
               </motion.div>
-              <h1 className="relative bg-gradient-to-r from-indigo-300 to-blue-300 bg-[size:200%] animate-gradient-x bg-clip-text text-2xl font-bold text-transparent">
-                TweeterLens
-                <motion.span
-                  className="absolute -bottom-1 left-0 h-[2px] bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                />
+              <h1 className="font-sentient relative text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-300 text-2xl font-semibold tracking-normal drop-shadow-sm">
+                <span className="mr-1">Tweeter</span>
+                <span className="text-purple-400 font-extrabold">Lens</span>
               </h1>
             </motion.div>
 
@@ -93,10 +126,10 @@ export default function Home() {
                 <Button
                   asChild
                   variant="outline"
-                  className="flex items-center gap-3 h-10 rounded-full border-white/10 bg-black/50 px-5 py-2.5 text-sm text-white shadow-lg hover:border-indigo-500/50 hover:bg-black/70 transition-all"
+                  className="flex items-center gap-3 h-10 rounded-full border-white/10 bg-black/50 px-5 py-2.5 text-sm text-white shadow-lg hover:border-purple-500/50 hover:bg-black/70 transition-all"
                 >
                   <a href="/tweets" className="flex items-center gap-2.5">
-                    <div className="text-indigo-400">
+                    <div className="text-purple-400">
                       <Database className="h-4 w-4" />
                     </div>
                     <span>Raw Tweets</span>
@@ -126,14 +159,14 @@ export default function Home() {
                 </Button>
               </motion.div>
 
-              {/* X/Twitter Button - Improved */}
+              {/* X/Twitter Button - with Inter font */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Button
                   asChild
-                  className="relative overflow-hidden flex items-center gap-3 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg hover:shadow-indigo-500/25 transition-all duration-300"
+                  className="relative overflow-hidden flex items-center gap-3 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg hover:shadow-purple-500/15 transition-all duration-300"
                 >
                   <a
                     href="https://twitter.com/UtkarshTheDev"
@@ -141,10 +174,10 @@ export default function Home() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2.5"
                   >
-                    {/* Shine effect */}
+                    {/* Reduced shine effect */}
                     <div className="absolute inset-0 -z-10 overflow-hidden rounded-full">
                       <div
-                        className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"
                         style={{ transform: "rotate(-45deg)" }}
                       ></div>
                     </div>
@@ -160,189 +193,230 @@ export default function Home() {
       </header>
 
       <main className="flex-grow">
-        <section className="container mx-auto px-4 py-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <motion.h2
-              className="mb-6 bg-gradient-to-r from-indigo-200 via-blue-200 to-purple-200 bg-clip-text text-4xl font-bold text-transparent md:text-5xl"
-              initial={{ backgroundPosition: "0% 50%" }}
-              animate={{ backgroundPosition: "100% 50%" }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
-              style={{ backgroundSize: "200% auto" }}
-            >
-              Visualize Your Twitter Journey
-            </motion.h2>
-            <motion.p
-              className="mx-auto mb-12 max-w-2xl text-lg text-gray-100"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.4 }}
-            >
-              Explore tweets from any Twitter/X user with our beautiful
-              analytics dashboard. Get detailed insights, engagement metrics,
-              and visualize posting patterns.
-            </motion.p>
-
-            <div className="mx-auto flex flex-wrap justify-center gap-6 mb-16">
-              {/* GitHub Button - Main CTA */}
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+        {/* Hero section with all content inside the half-moon gradient */}
+        <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center">
+          <div className="container mx-auto px-4 py-8 mt-24">
+            <div className="max-w-2xl mx-auto text-center">
+              {/* Main title and description */}
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                className="heading-sentient text-5xl md:text-7xl font-bold mb-5 bg-gradient-to-r from-white via-blue-200 to-white bg-clip-text text-transparent"
               >
-                <Button
-                  asChild
-                  variant="outline"
-                  className="flex items-center gap-5 rounded-xl border border-white/10 bg-zinc-800/80 px-8 py-6 text-white shadow-xl hover:border-white/20 hover:bg-zinc-700/90 transition-all duration-300"
-                >
-                  <a
-                    href="https://github.com/UtkarshTheDev/TweeterLens"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center"
-                  >
-                    <div className="flex items-center justify-center">
-                      <div className="mr-3 p-2.5 bg-black/60 rounded-lg">
-                        <Github className="h-6 w-6 text-white/90" />
+                Twitter Analytics Visualized
+              </motion.h2>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                className="text-white text-sm mb-8 max-w-xl mx-auto leading-relaxed"
+              >
+                Explore any Twitter profile with beautiful analytics.
+              </motion.p>
+
+              {/* Show either API Key Input or Username Search Input */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.3 }}
+                className="mb-8 flex justify-center"
+              >
+                {!hasApiKey || showApiKeyInput ? (
+                  <div className="w-full max-w-md">
+                    <ApiKeyInput onApiKeySaved={handleApiKeySaved} />
+                    {hasApiKey && (
+                      <div className="mt-2 text-center">
+                        <button
+                          onClick={cancelApiConfig}
+                          className="text-xs text-gray-400 hover:text-white transition-colors"
+                        >
+                          Cancel and return to search
+                        </button>
                       </div>
-                      <div className="flex flex-col items-start">
-                        <span className="text-xs text-gray-400">
-                          Star the repo on
-                        </span>
-                        <span className="font-semibold">GitHub</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-full max-w-md">
+                    <div className="relative overflow-hidden rounded-xl border border-white/5 bg-black/40 backdrop-blur-sm p-4">
+                      <div className="absolute inset-0 -z-10 opacity-5">
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10" />
+                      </div>
+
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2 justify-center mb-1">
+                          <Search className="h-4 w-4 text-blue-300" />
+                          <h3 className="heading-sentient tracking-wider text-sm font-medium text-white">
+                            Search Twitter Profile
+                          </h3>
+                        </div>
+
+                        <div className="flex gap-2 w-full">
+                          <Input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Enter Twitter username..."
+                            className="w-full bg-black/30 border-white/5 text-white placeholder:text-gray-500 rounded-lg"
+                          />
+
+                          <Button
+                            type="button"
+                            onClick={handleSearch}
+                            disabled={!username.trim()}
+                            className="bg-gradient-to-r from-purple-600/80 to-blue-600/80 text-white rounded-lg flex items-center gap-2 whitespace-nowrap"
+                          >
+                            <ArrowRight className="h-4 w-4" />
+                            <span>Search</span>
+                          </Button>
+                        </div>
+
+                        <div className="flex justify-center mt-1">
+                          <button
+                            onClick={handleShowApiKeyInput}
+                            className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            <Key className="h-3 w-3" />
+                            Configure API Key
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </a>
-                </Button>
+                  </div>
+                )}
               </motion.div>
 
-              {/* X/Twitter Button - Main CTA */}
+              {/* Call to action buttons */}
               <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.4 }}
+                className="flex flex-wrap justify-center gap-4"
               >
                 <Button
                   asChild
-                  className="relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-6 shadow-xl hover:shadow-indigo-500/25 transition-all duration-300"
+                  variant="default"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
                 >
                   <a
                     href="https://twitter.com/UtkarshTheDev"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center"
+                    className="flex items-center gap-2 text-white"
                   >
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 -z-10 overflow-hidden rounded-xl">
-                      <div
-                        className="absolute -inset-[100%] animate-[spin_3s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                        style={{ transform: "rotate(-45deg)" }}
-                      ></div>
-                    </div>
+                    <Twitter className="w-4 h-4" />
+                    <span>Follow on X</span>
+                  </a>
+                </Button>
 
-                    <div className="flex items-center">
-                      <div className="mr-3 p-2.5 bg-white/10 backdrop-blur-sm rounded-lg">
-                        <Twitter className="h-6 w-6 text-white/90" />
-                      </div>
-                      <div className="flex flex-col items-start">
-                        <span className="text-xs text-indigo-200">
-                          Follow on
-                        </span>
-                        <span className="font-semibold text-white">
-                          Twitter/X
-                        </span>
-                      </div>
-                    </div>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="px-6 py-3 border border-white/10 bg-gradient-to-r from-gray-900 to-black rounded-xl hover:bg-black hover:border-blue-500/30 transition-all shadow-lg"
+                >
+                  <a
+                    href="https://github.com/UtkarshTheDev/TweeterLens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-white"
+                  >
+                    <Github className="w-4 h-4" />
+                    <span>Star on GitHub</span>
                   </a>
                 </Button>
               </motion.div>
             </div>
+          </div>
+        </div>
 
-            {/* TwitterFeed component moved above feature cards */}
-            <TwitterFeed />
+        {/* Twitter Feed section with black gradient background */}
+        <div
+          id="search"
+          className="relative bg-gradient-to-b from-black/0 to-black py-16"
+        >
+          <TwitterFeed
+            initialUsername={searchUsername}
+            hideSearchInput={true}
+          />
+        </div>
 
-            {/* Feature highlights moved below search input */}
-            <div className="mt-28 mb-16">
-              <h3 className="text-2xl font-bold text-white mb-12">
-                Key Features
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                <motion.div
-                  className="p-8 rounded-2xl bg-gradient-to-br from-indigo-900/10 to-blue-900/10 border border-white/5 backdrop-blur-sm"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  whileHover={{
-                    y: -5,
-                    boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div className="h-16 w-16 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 mx-auto">
-                    <Search className="h-8 w-8 text-indigo-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-4">
-                    Search Any User
-                  </h3>
-                  <p className="text-gray-300 text-sm leading-relaxed">
-                    Enter any Twitter/X username to analyze their posting
-                    history and engagement patterns
-                  </p>
-                </motion.div>
+        {/* Feature highlights with black gradient background */}
+        <div className="relative bg-black py-16">
+          <div className="container mx-auto px-4">
+            <h3 className="heading-sentient text-2xl font-bold text-white mb-12 text-center">
+              Key Features
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <motion.div
+                className="p-8 rounded-2xl bg-gradient-to-br from-purple-900/5 to-blue-900/5 border border-white/5 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 15px 30px rgba(0,0,0,0.1)",
+                }}
+              >
+                <div className="h-16 w-16 bg-purple-500/5 rounded-xl flex items-center justify-center mb-6 mx-auto">
+                  <Search className="h-8 w-8 text-purple-400" />
+                </div>
+                <h3 className="heading-sentient text-xl font-semibold text-white mb-4">
+                  Search Any User
+                </h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  Enter any Twitter/X username to analyze their posting history
+                  and engagement patterns
+                </p>
+              </motion.div>
 
-                <motion.div
-                  className="p-8 rounded-2xl bg-gradient-to-br from-blue-900/10 to-violet-900/10 border border-white/5 backdrop-blur-sm"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  whileHover={{
-                    y: -5,
-                    boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div className="h-16 w-16 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 mx-auto">
-                    <BarChart2 className="h-8 w-8 text-blue-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-4">
-                    Detailed Analytics
-                  </h3>
-                  <p className="text-gray-300 text-sm leading-relaxed">
-                    View engagement metrics, hashtag usage, and interactive
-                    heatmaps of activity patterns
-                  </p>
-                </motion.div>
+              <motion.div
+                className="p-8 rounded-2xl bg-gradient-to-br from-blue-900/5 to-violet-900/5 border border-white/5 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 15px 30px rgba(0,0,0,0.1)",
+                }}
+              >
+                <div className="h-16 w-16 bg-blue-500/5 rounded-xl flex items-center justify-center mb-6 mx-auto">
+                  <BarChart2 className="h-8 w-8 text-blue-400" />
+                </div>
+                <h3 className="heading-sentient text-xl font-semibold text-white mb-4">
+                  Detailed Analytics
+                </h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  View engagement metrics, hashtag usage, and interactive
+                  heatmaps of activity patterns
+                </p>
+              </motion.div>
 
-                <motion.div
-                  className="p-8 rounded-2xl bg-gradient-to-br from-violet-900/10 to-purple-900/10 border border-white/5 backdrop-blur-sm"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  whileHover={{
-                    y: -5,
-                    boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div className="h-16 w-16 bg-violet-500/10 rounded-xl flex items-center justify-center mb-6 mx-auto">
-                    <Zap className="h-8 w-8 text-violet-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-4">
-                    Fast & Efficient
-                  </h3>
-                  <p className="text-gray-300 text-sm leading-relaxed">
-                    Smart caching and optimized data fetching for quick results
-                    and seamless user experience
-                  </p>
-                </motion.div>
-              </div>
+              <motion.div
+                className="p-8 rounded-2xl bg-gradient-to-br from-violet-900/5 to-purple-900/5 border border-white/5 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                whileHover={{
+                  y: -5,
+                  boxShadow: "0 15px 30px rgba(0,0,0,0.1)",
+                }}
+              >
+                <div className="h-16 w-16 bg-violet-500/5 rounded-xl flex items-center justify-center mb-6 mx-auto">
+                  <Zap className="h-8 w-8 text-violet-400" />
+                </div>
+                <h3 className="heading-sentient text-xl font-semibold text-white mb-4">
+                  Fast & Efficient
+                </h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  Smart caching and optimized data fetching for quick results
+                  and seamless user experience
+                </p>
+              </motion.div>
             </div>
-          </motion.div>
-        </section>
+          </div>
+        </div>
       </main>
 
       <footer className="mt-auto border-t border-white/10 bg-black/30 py-6 backdrop-blur-xl">
@@ -358,7 +432,7 @@ export default function Home() {
               href="https://twitter.com/UtkarshTheDev"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-400 hover:underline"
+              className="text-purple-400 hover:underline"
             >
               @UtkarshTheDev
             </a>

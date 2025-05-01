@@ -17,6 +17,11 @@ import {
   Heart,
   Bookmark,
   Eye,
+  MessageSquare,
+  BarChart2,
+  Hash,
+  Reply,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toPng } from "html-to-image";
@@ -39,6 +44,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TweetData } from "@/components/TweetData";
 import { ApiKeyInput } from "@/components/ApiKeyInput";
+import { TwitterUser, PartialTweet } from "@/lib/twitter-utils";
 
 const themes = [
   {
@@ -240,8 +246,17 @@ const getActivityColor = (count: number, theme: ThemeOption): string => {
   return theme.colors[3];
 };
 
-export const TwitterFeed = () => {
-  const [username, setUsername] = useState("");
+// Update the TwitterFeed component to accept initialUsername and hideSearchInput props
+interface TwitterFeedProps {
+  initialUsername?: string;
+  hideSearchInput?: boolean;
+}
+
+export const TwitterFeed = ({
+  initialUsername = "",
+  hideSearchInput = false,
+}: TwitterFeedProps) => {
+  const [username, setUsername] = useState(initialUsername);
   const [searchUsername, setSearchUsername] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [selectedTheme, setSelectedTheme] = useState(themes[0]);
@@ -251,13 +266,28 @@ export const TwitterFeed = () => {
   ]);
   const graphRef = useRef<HTMLDivElement>(null);
 
+  // Use effect to initialize search when initialUsername changes
+  useEffect(() => {
+    if (initialUsername && initialUsername !== searchUsername) {
+      setUsername(initialUsername);
+      // If we have an API key, trigger the search
+      if (apiKey) {
+        setSearchUsername(initialUsername);
+      }
+    }
+  }, [initialUsername, apiKey, searchUsername]);
+
   // Load API key from localStorage on component mount
   useEffect(() => {
     const savedApiKey = localStorage.getItem("socialdataApiKey");
     if (savedApiKey) {
       setApiKey(savedApiKey);
+      // If we have an initialUsername, trigger the search
+      if (initialUsername && initialUsername.trim()) {
+        setSearchUsername(initialUsername);
+      }
     }
-  }, []);
+  }, [initialUsername]);
 
   const handleApiKeySaved = (key: string) => {
     setApiKey(key);
@@ -346,96 +376,96 @@ export const TwitterFeed = () => {
   }, [data]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <ApiKeyInput onApiKeySaved={handleApiKeySaved} />
-
+    <div className="container mx-auto px-4 py-4">
       <div className="flex flex-col items-center space-y-8">
-        {/* Modern search box */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full max-w-xl"
-        >
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-white/10 bg-gradient-to-r from-black/90 to-zinc-900/70 backdrop-blur-xl">
-            {/* Animated background */}
-            <div className="absolute inset-0 -z-10 opacity-20">
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-blue-600/20 animate-gradient"
-                style={{ backgroundSize: "200% 200%" }}
-              />
-            </div>
-
-            <div className="relative flex items-center px-4 py-3">
-              <div className="p-1.5 bg-indigo-500/10 rounded-lg mr-3">
-                <Search className="h-5 w-5 text-indigo-400" />
+        {/* Modern search box - shown only if hideSearchInput is false */}
+        {!hideSearchInput && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="w-full max-w-xl"
+          >
+            <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-white/10 bg-gradient-to-r from-black/90 to-zinc-900/70 backdrop-blur-xl">
+              {/* Animated background */}
+              <div className="absolute inset-0 -z-10 opacity-20">
+                <div
+                  className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-indigo-600/20 animate-gradient"
+                  style={{ backgroundSize: "200% 200%" }}
+                />
               </div>
 
-              <Input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  apiKey
-                    ? "Enter a Twitter username..."
-                    : "First add API key above, then enter username..."
-                }
-                className="flex-1 bg-transparent border-none text-white placeholder:text-gray-400 focus:ring-0 text-lg py-2"
-                disabled={!apiKey}
-              />
+              <div className="relative flex items-center px-4 py-3">
+                <div className="p-1.5 bg-purple-500/10 rounded-lg mr-3">
+                  <Search className="h-5 w-5 text-purple-400" />
+                </div>
 
-              <motion.div
-                whileHover={{ scale: apiKey ? 1.05 : 1 }}
-                whileTap={{ scale: apiKey ? 0.95 : 1 }}
-              >
-                <Button
-                  onClick={handleSearch}
-                  className={`relative overflow-hidden ml-2 rounded-xl ${
+                <Input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={
                     apiKey
-                      ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
-                      : "bg-gray-700 text-gray-300"
-                  } font-medium px-6 py-2 shadow-xl hover:shadow-indigo-500/25`}
-                  disabled={isLoading || !apiKey}
+                      ? "Enter a Twitter username..."
+                      : "First add API key above, then enter username..."
+                  }
+                  className="flex-1 bg-transparent border-none text-white placeholder:text-gray-400 focus:ring-0 text-lg py-2"
+                  disabled={!apiKey}
+                />
+
+                <motion.div
+                  whileHover={{ scale: apiKey ? 1.05 : 1 }}
+                  whileTap={{ scale: apiKey ? 0.95 : 1 }}
                 >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                      <span>Loading...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span>{apiKey ? "Search" : "Need API Key"}</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                  )}
+                  <Button
+                    onClick={handleSearch}
+                    className={`relative overflow-hidden ml-2 rounded-xl ${
+                      apiKey
+                        ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                        : "bg-gray-700 text-gray-300"
+                    } font-medium px-6 py-2 shadow-xl hover:shadow-purple-500/25`}
+                    disabled={isLoading || !apiKey}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        <span>Loading...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span>{apiKey ? "Search" : "Need API Key"}</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    )}
 
-                  {/* Button shine effect */}
-                  <div className="absolute inset-0 -z-10 overflow-hidden rounded-xl">
-                    <div
-                      className={`absolute -inset-[100%] ${
-                        apiKey ? "animate-[spin_4s_linear_infinite]" : ""
-                      } bg-gradient-to-r from-transparent via-white/20 to-transparent`}
-                      style={{ transform: "rotate(-45deg)" }}
-                    ></div>
-                  </div>
-                </Button>
-              </motion.div>
+                    {/* Button shine effect */}
+                    <div className="absolute inset-0 -z-10 overflow-hidden rounded-xl">
+                      <div
+                        className={`absolute -inset-[100%] ${
+                          apiKey ? "animate-[spin_4s_linear_infinite]" : ""
+                        } bg-gradient-to-r from-transparent via-white/20 to-transparent`}
+                        style={{ transform: "rotate(-45deg)" }}
+                      ></div>
+                    </div>
+                  </Button>
+                </motion.div>
+              </div>
             </div>
-          </div>
 
-          {/* Username example hint */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-2 text-center text-sm text-gray-500"
-          >
-            {apiKey
-              ? 'Try searching for usernames like "elonmusk" or "UtkarshTheDev"'
-              : "Please enter your Social Data API key above to enable searching"}
-          </motion.p>
-        </motion.div>
+            {/* Username example hint */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-2 text-center text-sm text-gray-500"
+            >
+              {apiKey
+                ? 'Try searching for usernames like "elonmusk" or "UtkarshTheDev"'
+                : "Use the API key from above to start analyzing Twitter profiles"}
+            </motion.p>
+          </motion.div>
+        )}
 
         {/* Enhanced loading state */}
         {isLoading && (
@@ -455,39 +485,8 @@ export const TwitterFeed = () => {
           </motion.div>
         )}
 
-        {/* Better error state */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md rounded-xl border border-red-500/20 bg-gradient-to-r from-black/80 to-red-950/20 p-6 text-center backdrop-blur-xl"
-          >
-            <div className="mb-2 flex justify-center">
-              <div className="rounded-full bg-red-500/10 p-3">
-                <svg
-                  className="h-6 w-6 text-red-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-lg font-medium text-red-400">
-              Failed to Load Data
-            </h3>
-            <p className="mt-1 text-sm text-gray-400">
-              We couldn't fetch the contributions. Please check the username and
-              try again.
-            </p>
-          </motion.div>
-        )}
+        {/* Replace error display with the ErrorState component */}
+        {error && <ErrorState error={error} />}
 
         {/* Enhanced data display */}
         {data && (
@@ -499,7 +498,7 @@ export const TwitterFeed = () => {
           >
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="heading-sentient text-2xl font-bold text-white">
                   <motion.span
                     initial={{ backgroundPosition: "0% 50%" }}
                     animate={{ backgroundPosition: "100% 50%" }}
@@ -515,8 +514,10 @@ export const TwitterFeed = () => {
                   's X Contributions
                 </h2>
                 <p className="text-sm text-gray-400">
-                  {(data as TwitterStatsResponse).totalPosts} posts in{" "}
-                  {selectedYear}
+                  <span className="stat-sentient">
+                    {(data as TwitterStatsResponse).totalPosts}
+                  </span>{" "}
+                  posts in {selectedYear}
                 </p>
               </div>
 
@@ -530,7 +531,7 @@ export const TwitterFeed = () => {
                     >
                       <Button
                         variant="outline"
-                        className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                        className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
                       >
                         <PaintBucket className="h-4 w-4 text-indigo-400" />
                         <span>{selectedTheme.name}</span>
@@ -546,7 +547,7 @@ export const TwitterFeed = () => {
                       <DropdownMenuItem
                         key={theme.name}
                         className={cn(
-                          "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
+                          "font-sentient flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
                           theme.name === selectedTheme.name ? "bg-white/10" : ""
                         )}
                         onClick={() => setSelectedTheme(theme)}
@@ -569,7 +570,7 @@ export const TwitterFeed = () => {
                     >
                       <Button
                         variant="outline"
-                        className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                        className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
                       >
                         <Calendar className="h-4 w-4 text-blue-400" />
                         <span>{selectedYear}</span>
@@ -585,7 +586,7 @@ export const TwitterFeed = () => {
                       <DropdownMenuItem
                         key={year}
                         className={cn(
-                          "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
+                          "font-sentient flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
                           year === selectedYear ? "bg-white/10" : ""
                         )}
                         onClick={() => setSelectedYear(year)}
@@ -607,7 +608,7 @@ export const TwitterFeed = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-indigo-500/20 hover:border-indigo-500/50"
+                    className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-indigo-500/20 hover:border-indigo-500/50"
                     onClick={handleExportImage}
                   >
                     <Download className="h-4 w-4" />
@@ -623,7 +624,7 @@ export const TwitterFeed = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50"
+                    className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50"
                     onClick={handleCopyImage}
                   >
                     <Camera className="h-4 w-4" />
@@ -788,9 +789,14 @@ export const TwitterFeed = () => {
                     className="rounded-lg border border-white/5 bg-black/20 px-4 py-3"
                   >
                     <p className="text-xs text-gray-500">Total Posts</p>
-                    <p className="text-2xl font-bold text-white">
-                      {(data as TwitterStatsResponse).totalPosts}
-                    </p>
+                    <div className="flex items-center justify-center">
+                      <div className="text-center">
+                        <span className="stat-sentient text-2xl font-bold text-blue-400">
+                          {(data as TwitterStatsResponse).totalPosts}
+                        </span>
+                        <p className="text-xs text-gray-500">Total Posts</p>
+                      </div>
+                    </div>
                   </motion.div>
 
                   {/* Current Streak */}
@@ -982,17 +988,35 @@ export const TwitterFeed = () => {
   );
 };
 
-// Fix the Tweets component type issue
-export const Tweets = ({ data }: { data: TwitterStatsResponse | null }) => {
-  // Extract user data and tweets from the response
-  const {
-    user,
-    tweets,
-    total_fetched,
-    total_returned,
-    total_profile_tweets,
-    payment_error,
-  } = data || {};
+// Update the interface definition to include the missing fields from the linter errors
+interface TwitterApiResponse {
+  user?: TwitterUser;
+  tweets?: PartialTweet[];
+  total_fetched?: number;
+  total_returned?: number;
+  total_profile_tweets?: number;
+  payment_error?: string;
+}
+
+// Then use type predicates to safely access properties
+export const Tweets = ({
+  data,
+}: {
+  data: TwitterStatsResponse | TwitterApiResponse | null;
+}) => {
+  // Extract data safely using optional chaining
+  const user = data && "user" in data ? data.user : undefined;
+  const tweets = data && "tweets" in data ? data.tweets : undefined;
+  const total_fetched =
+    data && "total_fetched" in data ? data.total_fetched : undefined;
+  const total_returned =
+    data && "total_returned" in data ? data.total_returned : undefined;
+  const total_profile_tweets =
+    data && "total_profile_tweets" in data
+      ? data.total_profile_tweets
+      : undefined;
+  const payment_error =
+    data && "payment_error" in data ? data.payment_error : undefined;
 
   return (
     <div className="space-y-6">
@@ -1031,7 +1055,7 @@ export const Tweets = ({ data }: { data: TwitterStatsResponse | null }) => {
       <TweetData data={{ tweets }} />
 
       {/* Stats */}
-      {total_profile_tweets && (
+      {total_profile_tweets && total_fetched && (
         <p className="mt-4 text-center text-sm text-gray-400">
           Showing {total_returned} of approximately {total_profile_tweets}{" "}
           tweets ({Math.round((total_fetched / total_profile_tweets) * 100)}%
@@ -1051,3 +1075,56 @@ export const Tweets = ({ data }: { data: TwitterStatsResponse | null }) => {
     </div>
   );
 };
+
+interface TabButtonProps {
+  isActive: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+const TabButton = ({ isActive, onClick, children }: TabButtonProps) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
+      isActive && "border-b-2 border-purple-500 text-white",
+      !isActive && "text-gray-400"
+    )}
+  >
+    {children}
+  </button>
+);
+
+const TypeButton = ({ isActive, onClick, children }: TabButtonProps) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
+      isActive && "border-b-2 border-purple-500 text-white",
+      !isActive && "text-gray-400"
+    )}
+  >
+    {children}
+  </button>
+);
+
+// Add ErrorState function component to fix error handling
+const ErrorState = ({ error }: { error: unknown }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="flex flex-col items-center justify-center p-8 rounded-lg bg-black/30 border border-white/5 my-4"
+  >
+    <div className="bg-red-500/20 p-3 rounded-full mb-3">
+      <AlertTriangle className="h-6 w-6 text-red-500" />
+    </div>
+    <h3 className="heading-sentient text-lg font-medium text-red-400">
+      Error fetching tweets
+    </h3>
+    <p className="mt-1 text-sm text-gray-400">
+      {typeof error === "string"
+        ? error
+        : "Failed to load data. Please try again."}
+    </p>
+  </motion.div>
+);

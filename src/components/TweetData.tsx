@@ -81,11 +81,11 @@ export const TweetData = ({ data }: TweetDataProps) => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card className="w-full border-white/10 bg-gradient-to-br from-zinc-900/80 via-black/95 to-zinc-900/80 backdrop-blur-xl relative overflow-hidden">
+      <Card className="w-full border-white/10 bg-gradient-to-br from-violet-950/60 via-black/80 to-blue-950/60 backdrop-blur-xl relative overflow-hidden">
         {/* Subtle gradient background animation */}
         <div className="absolute inset-0 -z-10 opacity-10">
           <div
-            className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-blue-600/10 animate-gradient"
+            className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-indigo-600/10 to-blue-600/10 animate-gradient"
             style={{ backgroundSize: "200% 200%" }}
           />
         </div>
@@ -93,7 +93,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
         <CardHeader className="mb-2 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white">
-              <span className="bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                 Raw Tweet
               </span>{" "}
               Data
@@ -113,14 +113,16 @@ export const TweetData = ({ data }: TweetDataProps) => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center">
-            {data?.total_fetched > data?.total_returned && (
-              <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-gray-400">
-                <span>
-                  Showing {data.total_returned} of {data.total_fetched} fetched
-                  tweets
-                </span>
-              </div>
-            )}
+            {data?.total_fetched &&
+              data?.total_returned &&
+              data.total_fetched > data.total_returned && (
+                <div className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-gray-400">
+                  <span>
+                    Showing {data.total_returned} of {data.total_fetched}{" "}
+                    fetched tweets
+                  </span>
+                </div>
+              )}
 
             {data?.next_cursor && (
               <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-gray-400">
@@ -139,7 +141,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
             return (
               <Card
                 key={tweetKey}
-                className="overflow-hidden border-white/10 bg-black/40 hover:border-indigo-500/50"
+                className="overflow-hidden border-white/10 bg-black/40 hover:border-purple-500/50"
               >
                 <CardHeader
                   className="cursor-pointer p-4"
@@ -158,13 +160,13 @@ export const TweetData = ({ data }: TweetDataProps) => {
                           alt={tweet.user.name}
                         />
                         <AvatarFallback>
-                          <User className="h-5 w-5 text-indigo-400/70" />
+                          <User className="h-5 w-5 text-purple-400/70" />
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <Avatar className="h-10 w-10 bg-gradient-to-br from-indigo-500/20 to-blue-500/20">
+                      <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-500/20 to-blue-500/20">
                         <AvatarFallback>
-                          <User className="h-5 w-5 text-indigo-400/70" />
+                          <User className="h-5 w-5 text-purple-400/70" />
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -180,7 +182,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                         {tweet.user?.verified && (
                           <Badge
                             variant="outline"
-                            className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 p-0"
+                            className="flex h-4 w-4 items-center justify-center rounded-full bg-purple-500 p-0"
                           >
                             <svg
                               viewBox="0 0 24 24"
@@ -199,11 +201,19 @@ export const TweetData = ({ data }: TweetDataProps) => {
                       <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{formatDate(tweet.tweet_created_at)}</span>
+                          <span>
+                            {tweet.tweet_created_at
+                              ? formatDate(tweet.tweet_created_at)
+                              : "Unknown date"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Twitter className="h-3 w-3" />
-                          <span>{extractAppSource(tweet.source)}</span>
+                          <span>
+                            {tweet.source
+                              ? extractAppSource(tweet.source)
+                              : "Twitter"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -211,7 +221,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="rounded-full bg-black/50 p-1.5 text-gray-400 hover:bg-indigo-900/30 hover:text-indigo-300"
+                      className="rounded-full bg-black/50 p-1.5 text-gray-400 hover:bg-purple-900/30 hover:text-purple-300"
                     >
                       {expandedTweet === (tweet.id_str || tweet.id) ? (
                         <ChevronUp className="h-4 w-4" />
@@ -224,7 +234,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
 
                 <CardFooter className="flex items-center justify-between border-t border-white/5 px-4 py-2">
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1 text-xs text-indigo-300">
+                    <div className="flex items-center gap-1 text-xs text-purple-300">
                       <MessageCircle className="h-3.5 w-3.5" />
                       <span>{tweet.reply_count || 0}</span>
                     </div>
@@ -232,7 +242,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                       <Repeat className="h-3.5 w-3.5" />
                       <span>{tweet.retweet_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-purple-300">
+                    <div className="flex items-center gap-1 text-xs text-pink-300">
                       <Heart className="h-3.5 w-3.5" />
                       <span>{tweet.favorite_count || 0}</span>
                     </div>
@@ -242,7 +252,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                       <Bookmark className="h-3.5 w-3.5" />
                       <span>{tweet.bookmark_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-indigo-300">
+                    <div className="flex items-center gap-1 text-xs text-purple-300">
                       <Eye className="h-3.5 w-3.5" />
                       <span>{tweet.views_count || 0}</span>
                     </div>
@@ -326,7 +336,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                                 <div className="flex flex-col">
                                   <span className="text-gray-500">User ID</span>
                                   <span className="font-mono text-gray-300">
-                                    {tweet.user.id_str || tweet.user.id}
+                                    {tweet.user.id_str}
                                   </span>
                                 </div>
                                 <div className="flex flex-col">
@@ -378,12 +388,12 @@ export const TweetData = ({ data }: TweetDataProps) => {
 
                               {tweet.user.url && (
                                 <div className="mt-2 flex items-center gap-2">
-                                  <Link className="h-3 w-3 text-indigo-400" />
+                                  <Link className="h-3 w-3 text-purple-400" />
                                   <a
                                     href={tweet.user.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-indigo-400 hover:underline"
+                                    className="flex items-center gap-1 text-purple-400 hover:underline"
                                   >
                                     {tweet.user.url}
                                     <ExternalLink className="h-2.5 w-2.5" />
@@ -398,70 +408,73 @@ export const TweetData = ({ data }: TweetDataProps) => {
                             <div className="rounded-lg border border-white/5 p-3">
                               <h5 className="mb-2 text-gray-400">Entities</h5>
 
-                              {tweet.entities.hashtags?.length > 0 && (
-                                <div className="mb-2">
-                                  <span className="text-gray-500">
-                                    Hashtags
-                                  </span>
-                                  <div className="mt-1 flex flex-wrap gap-1">
-                                    {tweet.entities.hashtags.map(
-                                      (tag: any, i: number) => (
-                                        <Badge
-                                          key={`${tweetKey}-tag-${i}`}
-                                          variant="outline"
-                                          className="rounded-full bg-indigo-900/30 px-2 py-0.5 text-indigo-300"
-                                        >
-                                          #{tag.text}
-                                        </Badge>
-                                      )
-                                    )}
+                              {tweet.entities.hashtags &&
+                                tweet.entities.hashtags.length > 0 && (
+                                  <div className="mb-2">
+                                    <span className="text-gray-500">
+                                      Hashtags
+                                    </span>
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      {tweet.entities.hashtags.map(
+                                        (tag: any, i: number) => (
+                                          <Badge
+                                            key={`${tweetKey}-tag-${i}`}
+                                            variant="outline"
+                                            className="rounded-full bg-purple-900/30 px-2 py-0.5 text-purple-300"
+                                          >
+                                            #{tag.text}
+                                          </Badge>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
 
-                              {tweet.entities.user_mentions?.length > 0 && (
-                                <div className="mb-2">
-                                  <span className="text-gray-500">
-                                    Mentions
-                                  </span>
-                                  <div className="mt-1 flex flex-wrap gap-1">
-                                    {tweet.entities.user_mentions.map(
-                                      (mention: any, i: number) => (
-                                        <Badge
-                                          key={`${tweetKey}-mention-${i}`}
-                                          variant="outline"
-                                          className="rounded-full bg-emerald-900/30 px-2 py-0.5 text-emerald-300"
-                                        >
-                                          @{mention.screen_name}
-                                        </Badge>
-                                      )
-                                    )}
+                              {tweet.entities.user_mentions &&
+                                tweet.entities.user_mentions.length > 0 && (
+                                  <div className="mb-2">
+                                    <span className="text-gray-500">
+                                      Mentions
+                                    </span>
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      {tweet.entities.user_mentions.map(
+                                        (mention: any, i: number) => (
+                                          <Badge
+                                            key={`${tweetKey}-mention-${i}`}
+                                            variant="outline"
+                                            className="rounded-full bg-blue-900/30 px-2 py-0.5 text-blue-300"
+                                          >
+                                            @{mention.screen_name}
+                                          </Badge>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
 
-                              {tweet.entities.urls?.length > 0 && (
-                                <div>
-                                  <span className="text-gray-500">URLs</span>
-                                  <div className="mt-1 flex flex-col gap-1">
-                                    {tweet.entities.urls.map(
-                                      (url: any, i: number) => (
-                                        <a
-                                          key={`${tweetKey}-url-${i}`}
-                                          href={url.expanded_url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-1 text-indigo-400 hover:underline"
-                                        >
-                                          <Link className="h-3 w-3" />
-                                          {url.display_url}
-                                          <ExternalLink className="h-2 w-2" />
-                                        </a>
-                                      )
-                                    )}
+                              {tweet.entities.urls &&
+                                tweet.entities.urls.length > 0 && (
+                                  <div>
+                                    <span className="text-gray-500">URLs</span>
+                                    <div className="mt-1 flex flex-col gap-1">
+                                      {tweet.entities.urls.map(
+                                        (url: any, i: number) => (
+                                          <a
+                                            key={`${tweetKey}-url-${i}`}
+                                            href={url.expanded_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1 text-purple-400 hover:underline"
+                                          >
+                                            <Link className="h-3 w-3" />
+                                            {url.display_url}
+                                            <ExternalLink className="h-2 w-2" />
+                                          </a>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
                             </div>
                           )}
                         </div>

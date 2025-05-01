@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-jakarta",
-});
+import { inter, sentient } from "./fonts";
 
 export const metadata: Metadata = {
   title: "TweeterLens - Twitter Analytics & Visualization",
@@ -22,7 +16,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${jakarta.className} ${jakarta.variable}`}>
+      <body
+        className={`${inter.className} ${inter.variable} ${sentient.variable} min-h-screen relative`}
+      >
+        {/* Global background applied to all pages - reduced intensity */}
+        <div className="fixed inset-0 -z-10 bg-[#090418]">
+          {/* Background image with reduced opacity */}
+          <div className="absolute inset-0 bg-[url('/bg.png')] bg-cover bg-center bg-no-repeat opacity-100 "></div>
+
+          {/* Subtler overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/40"></div>
+
+          {/* Lighter grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f08_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+        </div>
         <Providers>{children}</Providers>
       </body>
     </html>

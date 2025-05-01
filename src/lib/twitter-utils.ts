@@ -1,5 +1,4 @@
 import { Redis } from "@upstash/redis";
-// @ts-expect-error - Redis import missing types but it works
 import ky from "ky";
 
 // Add a type declaration for the ky module
@@ -36,13 +35,10 @@ export const SAFETY_STOP = 300; // Increased from 100 to 300 to fetch more tweet
 
 // Create a function to get a KY instance with the provided API key
 export function getApiClient(apiKey: string) {
-  // @ts-expect-error Using any type to avoid ky type issues
-  return (ky as any).extend({
+  return ky.extend({
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
     },
-    timeout: 30000,
   });
 }
 
@@ -457,7 +453,7 @@ async function fetchFromSocialData(
       }
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as SuccessResponse;
     const tweets = data.tweets || [];
     const nextCursor = data.next_cursor;
 

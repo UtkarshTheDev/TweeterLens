@@ -1,15 +1,44 @@
 @import "tailwindcss";
 
+/* Import Sentient Font - Using direct paths */
+@font-face {
+  font-family: "Sentient";
+  src: url("/fonts/sentient-web/Sentient-Regular.woff2") format("woff2"),
+    url("/fonts/sentient-web/Sentient-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sentient";
+  src: url("/fonts/sentient-web/Sentient-Medium.woff2") format("woff2"),
+    url("/fonts/sentient-web/Sentient-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sentient";
+  src: url("/fonts/sentient-web/Sentient-Bold.woff2") format("woff2"),
+    url("/fonts/sentient-web/Sentient-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-jakarta);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+  --font-sentient: "Sentient", serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
+    --background: #09061d;
     --foreground: #ededed;
   }
 }
@@ -17,30 +46,52 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-jakarta), Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* Utility classes for Sentient font - only for important elements */
+.font-sentient {
+  font-family: "Sentient", serif;
+}
+
+.heading-sentient {
+  font-family: "Sentient", serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.logo-sentient {
+  font-family: "Sentient", serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.stat-sentient {
+  font-family: "Sentient", serif;
+  font-weight: 700;
 }
 
 @layer base {
   :root {
-    --background: 0 0% 0%;
+    --background: 250 80% 7%;
     --foreground: 210 40% 98%;
-    --card: 0 0% 0%;
+    --card: 250 80% 5%;
     --card-foreground: 210 40% 98%;
-    --popover: 0 0% 0%;
+    --popover: 250 80% 5%;
     --popover-foreground: 210 40% 98%;
-    --primary: 180 70% 45%;
+    --primary: 250 70% 60%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 161 70% 45%;
+    --secondary: 269 70% 60%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 180 24% 16%;
+    --muted: 250 24% 16%;
     --muted-foreground: 210 20% 65%;
-    --accent: 161 70% 45%;
+    --accent: 269 70% 60%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 180 24% 16%;
-    --input: 180 24% 16%;
-    --ring: 180 70% 45%;
+    --border: 250 24% 16%;
+    --input: 250 24% 16%;
+    --ring: 250 70% 60%;
     --radius: 0.5rem;
   }
 }
@@ -72,9 +123,9 @@ body {
   background-size: 200% 200%;
   background-image: linear-gradient(
     45deg,
-    rgb(79, 70, 229, 0.1),
-    rgb(124, 58, 237, 0.1),
-    rgb(37, 99, 235, 0.1)
+    rgb(88, 61, 218, 0.1),
+    rgb(142, 53, 239, 0.1),
+    rgb(67, 56, 202, 0.1)
   );
 }
 
@@ -82,8 +133,8 @@ body {
   animation: gradient 10s linear infinite;
   background-image: linear-gradient(
     to right,
-    rgb(79, 70, 229),
-    rgb(37, 99, 235)
+    rgb(88, 61, 218),
+    rgb(142, 53, 239)
   );
 }
 
