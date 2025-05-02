@@ -62,8 +62,8 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
       className="w-full max-w-md"
     >
       <div className="w-full">
-        {/* Main API input card with enhanced styling */}
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40 backdrop-blur-xl p-5 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+        {/* Main API input card with refined, modern styling */}
+        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40 backdrop-blur-xl p-5 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
           {/* Subtle gradient background */}
           <div className="absolute inset-0 -z-10 opacity-10">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20" />
@@ -71,7 +71,7 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
 
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 justify-center mb-1">
-              <Lock className="h-5 w-5 text-blue-300" />
+              <Lock className="h-4 w-4 text-indigo-400" />
               <h3 className="heading-cabinet text-[16px] font-medium text-white">
                 API Key
               </h3>
@@ -84,44 +84,56 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="Enter your API key"
-                  className="w-full bg-black/30 border-white/10 text-white text-[16px] placeholder:text-gray-400 rounded-lg h-12 shadow-inner shadow-blue-900/10 focus:border-purple-500/30 focus:ring-purple-500/20 transition-all"
+                  className="w-full bg-black/30 border-white/10 text-white text-[15px] placeholder:text-gray-400 rounded-md h-10 shadow-inner shadow-blue-900/10 focus:border-indigo-500/30 focus:ring-indigo-500/20 transition-all"
                 />
                 <button
                   type="button"
                   onClick={toggleVisibility}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                 >
-                  {isVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
 
               {!isSaved ? (
                 <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <Button
                     type="button"
                     onClick={handleSaveApiKey}
                     disabled={!apiKey.trim()}
-                    className="bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#A78BFA] hover:to-[#818CF8] text-white rounded-lg flex items-center gap-2 whitespace-nowrap text-[16px] h-12 px-5 shadow-md shadow-purple-900/20"
+                    className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg flex items-center gap-2 whitespace-nowrap text-[15px] h-10 px-4 shadow-sm transition-all"
                   >
-                    <Save className="h-5 w-5" />
+                    <Save className="h-4 w-4" />
                     <span>Save</span>
+                    <div className="absolute inset-0 -z-10 overflow-hidden">
+                      <div
+                        className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                        style={{ transform: "rotate(-45deg)" }}
+                      ></div>
+                    </div>
                   </Button>
                 </motion.div>
               ) : (
                 <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <Button
                     type="button"
                     onClick={handleCopyApiKey}
-                    className="bg-gradient-to-r from-[#4F46E5] to-[#4338CA] hover:from-[#6366F1] hover:to-[#4F46E5] text-white rounded-lg flex items-center gap-2 whitespace-nowrap text-[16px] h-12 px-5 shadow-md shadow-indigo-900/20"
+                    className="relative overflow-hidden bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-600 hover:to-purple-600 text-white rounded-lg flex items-center gap-2 whitespace-nowrap text-[15px] h-10 px-4 shadow-sm transition-all"
                   >
-                    <Copy className="h-5 w-5" />
+                    <Copy className="h-4 w-4" />
                     <span>Copy</span>
+                    <div className="absolute inset-0 -z-10 overflow-hidden">
+                      <div
+                        className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                        style={{ transform: "rotate(-45deg)" }}
+                      ></div>
+                    </div>
                   </Button>
                 </motion.div>
               )}
@@ -129,7 +141,7 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
 
             {isSaved && (
               <div className="flex items-center gap-2 text-sm text-green-400 justify-center">
-                <Check size={16} />
+                <Check size={14} />
                 API key saved!
               </div>
             )}
@@ -146,12 +158,12 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
         <div className="mt-3 text-center">
           <button
             onClick={() => setShowInstructions(!showInstructions)}
-            className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors px-4 py-1 rounded-full hover:bg-blue-900/10"
+            className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors px-3 py-1 rounded-full hover:bg-indigo-900/10"
           >
             {showInstructions ? (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className="h-3.5 w-3.5" />
             ) : (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-3.5 w-3.5" />
             )}
             {showInstructions ? "Hide instructions" : "How to get an API key"}
           </button>
@@ -162,9 +174,9 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="mt-4 text-sm text-gray-300 bg-black/30 p-4 rounded-lg space-y-3 border border-white/5 shadow-lg"
+              className="mt-3 text-sm text-gray-300 bg-black/30 p-4 rounded-md space-y-3 border border-white/5 shadow-md"
             >
-              <h3 className="heading-cabinet font-medium text-blue-400 text-center">
+              <h3 className="heading-cabinet font-medium text-indigo-400 text-center">
                 How to Get an API Key:
               </h3>
               <ol className="list-decimal pl-6 space-y-2">
@@ -172,7 +184,7 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                   Visit{" "}
                   <a
                     href="https://socialdata.tools"
-                    className="text-blue-400 hover:underline"
+                    className="text-indigo-400 hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -184,12 +196,12 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
                 <li>Copy your API key</li>
                 <li>Paste it here</li>
               </ol>
-              <p className="mt-3 text-gray-400 text-xs flex items-center justify-center gap-1">
+              <p className="mt-2 text-gray-400 text-xs flex items-center justify-center gap-1">
                 <Key className="h-3 w-3" />
                 API access via{" "}
                 <a
                   href="https://socialdata.tools"
-                  className="text-blue-400 hover:underline flex items-center gap-1"
+                  className="text-indigo-400 hover:underline flex items-center gap-1"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

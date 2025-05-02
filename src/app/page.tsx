@@ -69,7 +69,7 @@ export default function Home() {
     <div className="relative flex min-h-screen flex-col">
       {/* Enhanced background with subtle grid pattern */}
       <div className="absolute top-0 left-0 right-0 -z-10 overflow-hidden h-[70vh]">
-        <div className="absolute left-0 right-0 top-[-5%] h-[800px] w-full rounded-full bg-[radial-gradient(ellipse_at_top,rgba(120,58,240,0.25),transparent_70%)]"></div>
+        <div className="absolute left-0 right-0 top-[-5%] h-[800px] w-full rounded-full bg-[radial-gradient(ellipse_at_top,rgba(120,58,240,0.2),transparent_70%)]"></div>
         {/* Subtle grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
         {/* Animated particles */}
@@ -117,11 +117,8 @@ export default function Home() {
                 transition={{ duration: 0.8 }}
                 className="relative h-12 w-12 flex items-center justify-center"
               >
-                {/* Modern gradient logo background */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 shadow-lg shadow-purple-500/20" />
-
-                {/* Professional icon with enhanced animation */}
-                <div className="relative z-10 h-7 w-7 flex items-center justify-center">
+                {/* Simplified icon without background for minimal look */}
+                <div className="relative z-10 h-8 w-8 flex items-center justify-center">
                   <motion.div
                     animate={{
                       scale: [1, 1.08, 1],
@@ -133,13 +130,13 @@ export default function Home() {
                       ease: "easeInOut",
                     }}
                   >
-                    <BarChart3 className="h-6 w-6 text-white drop-shadow-md" />
+                    <BarChart3 className="h-7 w-7 text-indigo-400 drop-shadow-md" />
                   </motion.div>
                 </div>
               </motion.div>
-              <h1 className="font-cabinet relative text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-300 text-2xl font-semibold tracking-normal drop-shadow-sm">
+              <h1 className="font-cabinet relative text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 text-2xl font-semibold tracking-normal drop-shadow-sm">
                 <span className="mr-1">Tweeter</span>
-                <span className="text-purple-400 font-extrabold">Lens</span>
+                <span className="font-extrabold">Lens</span>
               </h1>
             </motion.div>
 
@@ -152,10 +149,10 @@ export default function Home() {
                 <Button
                   asChild
                   variant="outline"
-                  className="flex items-center gap-3 h-10 rounded-full border-white/10 bg-black/50 px-5 py-2.5 text-sm text-white shadow-lg hover:border-purple-500/50 hover:bg-black/70 transition-all"
+                  className="flex items-center gap-3 h-9 rounded-full border-white/10 bg-black/50 px-5 py-2 text-sm text-white shadow-md hover:border-purple-500/50 hover:bg-black/70 transition-all"
                 >
                   <a href="/tweets" className="flex items-center gap-2.5">
-                    <div className="text-purple-400">
+                    <div className="text-indigo-400">
                       <Database className="h-4 w-4" />
                     </div>
                     <span>Raw Tweets</span>
@@ -163,7 +160,7 @@ export default function Home() {
                 </Button>
               </motion.div>
 
-              {/* GitHub Button - Improved */}
+              {/* GitHub Button - Darker, more minimal */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -171,7 +168,7 @@ export default function Home() {
                 <Button
                   asChild
                   variant="outline"
-                  className="flex items-center gap-3 h-10 rounded-full border-white/20 bg-zinc-800/80 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:border-white/30 hover:bg-zinc-700/80 transition-all duration-300"
+                  className="flex items-center gap-3 h-10 rounded-full border-white/5 bg-black/70 px-5 py-4 text-sm font-medium text-white shadow-md hover:border-white/10 hover:bg-black/90 transition-all duration-300"
                 >
                   <a
                     href="https://github.com/UtkarshTheDev/TweeterLens"
@@ -185,14 +182,14 @@ export default function Home() {
                 </Button>
               </motion.div>
 
-              {/* X/Twitter Button - with Geist font */}
+              {/* X/Twitter Button - More prominent */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Button
                   asChild
-                  className="relative overflow-hidden flex items-center gap-3 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg hover:shadow-purple-500/15 transition-all duration-300"
+                  className="relative overflow-hidden flex items-center gap-3 h-9 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2 text-sm font-medium text-white shadow-lg hover:shadow-indigo-500/15 transition-all duration-300"
                 >
                   <a
                     href="https://twitter.com/UtkarshTheDev"
@@ -200,7 +197,7 @@ export default function Home() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2.5"
                   >
-                    {/* Reduced shine effect */}
+                    {/* Subtle shine effect */}
                     <div className="absolute inset-0 -z-10 overflow-hidden rounded-full">
                       <div
                         className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"
@@ -223,12 +220,19 @@ export default function Home() {
         <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center">
           <div className="container mx-auto px-4 py-8 mt-24">
             <div className="max-w-2xl mx-auto text-center">
-              {/* Main title with enhanced gradient and animation */}
+              {/* Main title with app-themed gradient for better visibility */}
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7 }}
-                className="heading-cabinet text-5xl md:text-[64px] font-extrabold mb-8 bg-gradient-to-r from-purple-400 via-blue-400 to-purple-300 bg-clip-text text-transparent drop-shadow-lg"
+                className="font-cabinet text-5xl md:text-7xl font-extrabold mb-0 text-transparent bg-clip-text"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to bottom right, #ffffff, #e2e8f0, #c7d2fe)",
+                  WebkitBackgroundClip: "text",
+                  color: "transparent",
+                  filter: "drop-shadow(0 0 12px rgba(255, 255, 255, 0.3))",
+                }}
               >
                 Twitter Analytics Visualized
               </motion.h2>
@@ -238,7 +242,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.2 }}
-                className="text-[#D1D5DB] text-[18px] mb-12 max-w-xl mx-auto leading-relaxed"
+                className="text-[#D1D5DB] text-sm mb-12 max-w-xl mx-auto leading-relaxed"
                 style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)" }}
               >
                 Explore any Twitter profile with beautiful analytics.
@@ -267,7 +271,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="w-full max-w-md">
-                    <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40 backdrop-blur-xl p-5 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+                    <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40 backdrop-blur-xl p-5 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
                       {/* Subtle background */}
                       <div className="absolute inset-0 -z-10 opacity-10">
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20" />
@@ -288,21 +292,27 @@ export default function Home() {
                             onChange={(e) => setUsername(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Enter Twitter username..."
-                            className="w-full bg-black/30 text-[16px] border-white/10 text-white placeholder:text-gray-400 rounded-lg h-12 shadow-inner shadow-blue-900/10 focus:border-purple-500/30 focus:ring-purple-500/20 transition-all"
+                            className="w-full bg-black/30 text-[16px] border-white/10 text-white placeholder:text-gray-400 rounded-lg h-10 shadow-inner shadow-blue-900/10 focus:border-purple-500/30 focus:ring-purple-500/20 transition-all"
                           />
 
                           <motion.div
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
                             <Button
                               type="button"
                               onClick={handleSearch}
                               disabled={!username.trim()}
-                              className="bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#A78BFA] hover:to-[#818CF8] text-white rounded-lg flex items-center gap-2 whitespace-nowrap text-[16px] h-12 px-5 shadow-md shadow-purple-900/20"
+                              className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg flex items-center gap-2 whitespace-nowrap text-[15px] h-10 px-4 shadow-sm transition-all"
                             >
                               <span>Search</span>
-                              <ArrowRight className="h-5 w-5" />
+                              <ArrowRight className="h-4 w-4" />
+                              <div className="absolute inset-0 -z-10 overflow-hidden">
+                                <div
+                                  className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                                  style={{ transform: "rotate(-45deg)" }}
+                                ></div>
+                              </div>
                             </Button>
                           </motion.div>
                         </div>
@@ -322,7 +332,7 @@ export default function Home() {
                 )}
               </motion.div>
 
-              {/* Call to action buttons with improved styling */}
+              {/* Call to action buttons with improved, sleeker styling */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -336,7 +346,7 @@ export default function Home() {
                   <Button
                     asChild
                     variant="default"
-                    className="px-6 py-3 h-14 bg-gradient-to-r from-[#3B82F6] to-[#60A5FA] hover:from-[#60A5FA] hover:to-[#93C5FD] rounded-xl shadow-lg shadow-blue-900/20 transition-all duration-300"
+                    className="relative overflow-hidden px-5 py-2 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-lg text-white transition-all duration-300"
                   >
                     <a
                       href="https://twitter.com/UtkarshTheDev"
@@ -344,8 +354,14 @@ export default function Home() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-white"
                     >
-                      <Twitter className="w-5 h-5" />
-                      <span className="text-[16px]">Follow on X</span>
+                      <Twitter className="w-4 h-4" />
+                      <span className="text-[15px]">Follow on X</span>
+                      <div className="absolute inset-0 -z-10 overflow-hidden">
+                        <div
+                          className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                          style={{ transform: "rotate(-45deg)" }}
+                        ></div>
+                      </div>
                     </a>
                   </Button>
                 </motion.div>
@@ -357,7 +373,7 @@ export default function Home() {
                   <Button
                     asChild
                     variant="outline"
-                    className="px-6 py-3 h-14 border border-white/15 bg-gradient-to-r from-[#4B5563] to-[#6B7280] hover:from-[#6B7280] hover:to-[#9CA3AF] rounded-xl shadow-lg text-white transition-all duration-300"
+                    className="px-5 py-2 h-10 border border-white/5 bg-black/70 hover:bg-black/90 rounded-lg text-white transition-all duration-300"
                   >
                     <a
                       href="https://github.com/UtkarshTheDev/TweeterLens"
@@ -365,8 +381,8 @@ export default function Home() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-white"
                     >
-                      <Github className="w-5 h-5" />
-                      <span className="text-[16px]">Star on GitHub</span>
+                      <Github className="w-4 h-4" />
+                      <span className="text-[15px]">Star on GitHub</span>
                     </a>
                   </Button>
                 </motion.div>
