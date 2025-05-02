@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
-import { inter, sentient } from "./fonts";
+import { cabinet } from "./fonts";
+import { GeistSans } from "geist/font/sans";
 
 export const metadata: Metadata = {
   title: "TweeterLens - Twitter Analytics & Visualization",
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} ${inter.variable} ${sentient.variable} min-h-screen relative`}
+        className={`${GeistSans.className} ${cabinet.variable} min-h-screen relative`}
       >
         {/* Global background applied to all pages - reduced intensity */}
         <div className="fixed inset-0 -z-10 bg-[#090418]">

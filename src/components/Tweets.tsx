@@ -498,7 +498,7 @@ export const TwitterFeed = ({
           >
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="heading-sentient text-2xl font-bold text-white">
+                <h2 className="heading-cabinet text-2xl font-bold text-white">
                   <motion.span
                     initial={{ backgroundPosition: "0% 50%" }}
                     animate={{ backgroundPosition: "100% 50%" }}
@@ -514,7 +514,7 @@ export const TwitterFeed = ({
                   's X Contributions
                 </h2>
                 <p className="text-sm text-gray-400">
-                  <span className="stat-sentient">
+                  <span className="stat-cabinet">
                     {(data as TwitterStatsResponse).totalPosts}
                   </span>{" "}
                   posts in {selectedYear}
@@ -531,7 +531,7 @@ export const TwitterFeed = ({
                     >
                       <Button
                         variant="outline"
-                        className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                        className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
                       >
                         <PaintBucket className="h-4 w-4 text-indigo-400" />
                         <span>{selectedTheme.name}</span>
@@ -547,7 +547,7 @@ export const TwitterFeed = ({
                       <DropdownMenuItem
                         key={theme.name}
                         className={cn(
-                          "font-sentient flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
+                          "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
                           theme.name === selectedTheme.name ? "bg-white/10" : ""
                         )}
                         onClick={() => setSelectedTheme(theme)}
@@ -570,7 +570,7 @@ export const TwitterFeed = ({
                     >
                       <Button
                         variant="outline"
-                        className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                        className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
                       >
                         <Calendar className="h-4 w-4 text-blue-400" />
                         <span>{selectedYear}</span>
@@ -586,7 +586,7 @@ export const TwitterFeed = ({
                       <DropdownMenuItem
                         key={year}
                         className={cn(
-                          "font-sentient flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
+                          "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
                           year === selectedYear ? "bg-white/10" : ""
                         )}
                         onClick={() => setSelectedYear(year)}
@@ -608,7 +608,7 @@ export const TwitterFeed = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-indigo-500/20 hover:border-indigo-500/50"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-indigo-500/20 hover:border-indigo-500/50"
                     onClick={handleExportImage}
                   >
                     <Download className="h-4 w-4" />
@@ -624,7 +624,7 @@ export const TwitterFeed = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="button-sentient flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50"
                     onClick={handleCopyImage}
                   >
                     <Camera className="h-4 w-4" />
@@ -791,7 +791,7 @@ export const TwitterFeed = ({
                     <p className="text-xs text-gray-500">Total Posts</p>
                     <div className="flex items-center justify-center">
                       <div className="text-center">
-                        <span className="stat-sentient text-2xl font-bold text-blue-400">
+                        <span className="stat-cabinet text-2xl font-bold text-blue-400">
                           {(data as TwitterStatsResponse).totalPosts}
                         </span>
                         <p className="text-xs text-gray-500">Total Posts</p>
@@ -1118,7 +1118,7 @@ const ErrorState = ({ error }: { error: unknown }) => (
     <div className="bg-red-500/20 p-3 rounded-full mb-3">
       <AlertTriangle className="h-6 w-6 text-red-500" />
     </div>
-    <h3 className="heading-sentient text-lg font-medium text-red-400">
+    <h3 className="heading-cabinet text-lg font-medium text-red-400">
       Error fetching tweets
     </h3>
     <p className="mt-1 text-sm text-gray-400">

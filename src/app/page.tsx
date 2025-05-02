@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Key,
   BarChart3,
+  Sparkles,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -66,9 +67,34 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      {/* Reduced half-moon gradient - smaller size and less intense */}
+      {/* Enhanced background with subtle grid pattern */}
       <div className="absolute top-0 left-0 right-0 -z-10 overflow-hidden h-[70vh]">
-        <div className="absolute left-0 right-0 top-[-5%] h-[800px] w-full rounded-full bg-[radial-gradient(ellipse_at_top,rgba(120,58,240,0.2),transparent_70%)]"></div>
+        <div className="absolute left-0 right-0 top-[-5%] h-[800px] w-full rounded-full bg-[radial-gradient(ellipse_at_top,rgba(120,58,240,0.25),transparent_70%)]"></div>
+        {/* Subtle grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+        {/* Animated particles */}
+        <div className="absolute inset-0 opacity-20">
+          <div
+            className="absolute h-2 w-2 rounded-full bg-purple-400 animate-pulse"
+            style={{ top: "20%", left: "30%" }}
+          ></div>
+          <div
+            className="absolute h-2 w-2 rounded-full bg-blue-400 animate-pulse"
+            style={{ top: "50%", left: "20%", animationDelay: "1s" }}
+          ></div>
+          <div
+            className="absolute h-2 w-2 rounded-full bg-indigo-400 animate-pulse"
+            style={{ top: "30%", left: "70%", animationDelay: "0.5s" }}
+          ></div>
+          <div
+            className="absolute h-2 w-2 rounded-full bg-purple-400 animate-pulse"
+            style={{ top: "60%", left: "80%", animationDelay: "1.5s" }}
+          ></div>
+          <div
+            className="absolute h-2 w-2 rounded-full bg-blue-400 animate-pulse"
+            style={{ top: "70%", left: "40%", animationDelay: "2s" }}
+          ></div>
+        </div>
       </div>
 
       {/* Enhanced header with glass morphism */}
@@ -111,7 +137,7 @@ export default function Home() {
                   </motion.div>
                 </div>
               </motion.div>
-              <h1 className="font-sentient relative text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-300 text-2xl font-semibold tracking-normal drop-shadow-sm">
+              <h1 className="font-cabinet relative text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-300 text-2xl font-semibold tracking-normal drop-shadow-sm">
                 <span className="mr-1">Tweeter</span>
                 <span className="text-purple-400 font-extrabold">Lens</span>
               </h1>
@@ -159,7 +185,7 @@ export default function Home() {
                 </Button>
               </motion.div>
 
-              {/* X/Twitter Button - with Inter font */}
+              {/* X/Twitter Button - with Geist font */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -197,21 +223,23 @@ export default function Home() {
         <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center">
           <div className="container mx-auto px-4 py-8 mt-24">
             <div className="max-w-2xl mx-auto text-center">
-              {/* Main title and description */}
+              {/* Main title with enhanced gradient and animation */}
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7 }}
-                className="heading-sentient text-5xl md:text-7xl font-bold mb-5 bg-gradient-to-r from-white via-blue-200 to-white bg-clip-text text-transparent"
+                className="heading-cabinet text-5xl md:text-[64px] font-extrabold mb-8 bg-gradient-to-r from-purple-400 via-blue-400 to-purple-300 bg-clip-text text-transparent drop-shadow-lg"
               >
                 Twitter Analytics Visualized
               </motion.h2>
 
+              {/* Subtitle with improved styling and spacing */}
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.2 }}
-                className="text-white text-sm mb-8 max-w-xl mx-auto leading-relaxed"
+                className="text-[#D1D5DB] text-[18px] mb-12 max-w-xl mx-auto leading-relaxed"
+                style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)" }}
               >
                 Explore any Twitter profile with beautiful analytics.
               </motion.p>
@@ -221,7 +249,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.3 }}
-                className="mb-8 flex justify-center"
+                className="mb-10 flex justify-center"
               >
                 {!hasApiKey || showApiKeyInput ? (
                   <div className="w-full max-w-md">
@@ -239,38 +267,44 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="w-full max-w-md">
-                    <div className="relative overflow-hidden rounded-xl border border-white/5 bg-black/40 backdrop-blur-sm p-4">
-                      <div className="absolute inset-0 -z-10 opacity-5">
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10" />
+                    <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40 backdrop-blur-xl p-5 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+                      {/* Subtle background */}
+                      <div className="absolute inset-0 -z-10 opacity-10">
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20" />
                       </div>
 
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-2 justify-center mb-1">
-                          <Search className="h-4 w-4 text-blue-300" />
-                          <h3 className="heading-sentient tracking-wider text-sm font-medium text-white">
+                          <Search className="h-5 w-5 text-blue-300" />
+                          <h3 className="heading-cabinet tracking-wider text-[16px] font-medium text-white">
                             Search Twitter Profile
                           </h3>
                         </div>
 
-                        <div className="flex gap-2 w-full">
+                        <div className="flex gap-3 w-full">
                           <Input
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Enter Twitter username..."
-                            className="w-full bg-black/30 border-white/5 text-white placeholder:text-gray-500 rounded-lg"
+                            className="w-full bg-black/30 text-[16px] border-white/10 text-white placeholder:text-gray-400 rounded-lg h-12 shadow-inner shadow-blue-900/10 focus:border-purple-500/30 focus:ring-purple-500/20 transition-all"
                           />
 
-                          <Button
-                            type="button"
-                            onClick={handleSearch}
-                            disabled={!username.trim()}
-                            className="bg-gradient-to-r from-purple-600/80 to-blue-600/80 text-white rounded-lg flex items-center gap-2 whitespace-nowrap"
+                          <motion.div
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
                           >
-                            <ArrowRight className="h-4 w-4" />
-                            <span>Search</span>
-                          </Button>
+                            <Button
+                              type="button"
+                              onClick={handleSearch}
+                              disabled={!username.trim()}
+                              className="bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#A78BFA] hover:to-[#818CF8] text-white rounded-lg flex items-center gap-2 whitespace-nowrap text-[16px] h-12 px-5 shadow-md shadow-purple-900/20"
+                            >
+                              <span>Search</span>
+                              <ArrowRight className="h-5 w-5" />
+                            </Button>
+                          </motion.div>
                         </div>
 
                         <div className="flex justify-center mt-1">
@@ -288,44 +322,54 @@ export default function Home() {
                 )}
               </motion.div>
 
-              {/* Call to action buttons */}
+              {/* Call to action buttons with improved styling */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.4 }}
                 className="flex flex-wrap justify-center gap-4"
               >
-                <Button
-                  asChild
-                  variant="default"
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <a
-                    href="https://twitter.com/UtkarshTheDev"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-white"
+                  <Button
+                    asChild
+                    variant="default"
+                    className="px-6 py-3 h-14 bg-gradient-to-r from-[#3B82F6] to-[#60A5FA] hover:from-[#60A5FA] hover:to-[#93C5FD] rounded-xl shadow-lg shadow-blue-900/20 transition-all duration-300"
                   >
-                    <Twitter className="w-4 h-4" />
-                    <span>Follow on X</span>
-                  </a>
-                </Button>
+                    <a
+                      href="https://twitter.com/UtkarshTheDev"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-white"
+                    >
+                      <Twitter className="w-5 h-5" />
+                      <span className="text-[16px]">Follow on X</span>
+                    </a>
+                  </Button>
+                </motion.div>
 
-                <Button
-                  asChild
-                  variant="outline"
-                  className="px-6 py-3 border border-white/10 bg-gradient-to-r from-gray-900 to-black rounded-xl hover:bg-black hover:border-blue-500/30 transition-all shadow-lg"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <a
-                    href="https://github.com/UtkarshTheDev/TweeterLens"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-white"
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="px-6 py-3 h-14 border border-white/15 bg-gradient-to-r from-[#4B5563] to-[#6B7280] hover:from-[#6B7280] hover:to-[#9CA3AF] rounded-xl shadow-lg text-white transition-all duration-300"
                   >
-                    <Github className="w-4 h-4" />
-                    <span>Star on GitHub</span>
-                  </a>
-                </Button>
+                    <a
+                      href="https://github.com/UtkarshTheDev/TweeterLens"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-white"
+                    >
+                      <Github className="w-5 h-5" />
+                      <span className="text-[16px]">Star on GitHub</span>
+                    </a>
+                  </Button>
+                </motion.div>
               </motion.div>
             </div>
           </div>
@@ -345,7 +389,7 @@ export default function Home() {
         {/* Feature highlights with black gradient background */}
         <div className="relative bg-black py-16">
           <div className="container mx-auto px-4">
-            <h3 className="heading-sentient text-2xl font-bold text-white mb-12 text-center">
+            <h3 className="heading-cabinet text-2xl font-bold text-white mb-12 text-center">
               Key Features
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -362,7 +406,7 @@ export default function Home() {
                 <div className="h-16 w-16 bg-purple-500/5 rounded-xl flex items-center justify-center mb-6 mx-auto">
                   <Search className="h-8 w-8 text-purple-400" />
                 </div>
-                <h3 className="heading-sentient text-xl font-semibold text-white mb-4">
+                <h3 className="heading-cabinet text-xl font-semibold text-white mb-4">
                   Search Any User
                 </h3>
                 <p className="text-gray-300 text-sm leading-relaxed">
@@ -384,7 +428,7 @@ export default function Home() {
                 <div className="h-16 w-16 bg-blue-500/5 rounded-xl flex items-center justify-center mb-6 mx-auto">
                   <BarChart2 className="h-8 w-8 text-blue-400" />
                 </div>
-                <h3 className="heading-sentient text-xl font-semibold text-white mb-4">
+                <h3 className="heading-cabinet text-xl font-semibold text-white mb-4">
                   Detailed Analytics
                 </h3>
                 <p className="text-gray-300 text-sm leading-relaxed">
@@ -406,7 +450,7 @@ export default function Home() {
                 <div className="h-16 w-16 bg-violet-500/5 rounded-xl flex items-center justify-center mb-6 mx-auto">
                   <Zap className="h-8 w-8 text-violet-400" />
                 </div>
-                <h3 className="heading-sentient text-xl font-semibold text-white mb-4">
+                <h3 className="heading-cabinet text-xl font-semibold text-white mb-4">
                   Fast & Efficient
                 </h3>
                 <p className="text-gray-300 text-sm leading-relaxed">

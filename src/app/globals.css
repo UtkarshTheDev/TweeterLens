@@ -1,29 +1,66 @@
 @import "tailwindcss";
 
-/* Import Sentient Font - Using direct paths */
+/* Import Cabinet Grotesk Font */
 @font-face {
-  font-family: "Sentient";
-  src: url("/fonts/sentient-web/Sentient-Regular.woff2") format("woff2"),
-    url("/fonts/sentient-web/Sentient-Regular.woff") format("woff");
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Thin.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Extralight.woff2") format("woff2");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Sentient";
-  src: url("/fonts/sentient-web/Sentient-Medium.woff2") format("woff2"),
-    url("/fonts/sentient-web/Sentient-Medium.woff") format("woff");
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Sentient";
-  src: url("/fonts/sentient-web/Sentient-Bold.woff2") format("woff2"),
-    url("/fonts/sentient-web/Sentient-Bold.woff") format("woff");
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Bold.woff2") format("woff2");
   font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Extrabold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet";
+  src: url("/fonts/cabinet-web/CabinetGrotesk-Black.woff2") format("woff2");
+  font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
@@ -31,9 +68,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
-  --font-sentient: "Sentient", serif;
+  --font-cabinet: "Cabinet", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -46,28 +83,67 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist), Arial, Helvetica, sans-serif;
 }
 
-/* Utility classes for Sentient font - only for important elements */
-.font-sentient {
-  font-family: "Sentient", serif;
+/* Utility classes for Cabinet font - only for important elements */
+.font-cabinet {
+  font-family: "Cabinet", sans-serif;
 }
 
-.heading-sentient {
-  font-family: "Sentient", serif;
-  font-weight: 700;
+.heading-cabinet {
+  font-family: "Cabinet", sans-serif;
   letter-spacing: -0.02em;
 }
 
-.logo-sentient {
-  font-family: "Sentient", serif;
+/* Font weight utility classes for Cabinet font */
+.font-cabinet-thin {
+  font-family: "Cabinet", sans-serif;
+  font-weight: 100;
+}
+
+.font-cabinet-extralight {
+  font-family: "Cabinet", sans-serif;
+  font-weight: 200;
+}
+
+.font-cabinet-light {
+  font-family: "Cabinet", sans-serif;
+  font-weight: 300;
+}
+
+.font-cabinet-regular {
+  font-family: "Cabinet", sans-serif;
+  font-weight: 400;
+}
+
+.font-cabinet-medium {
+  font-family: "Cabinet", sans-serif;
+  font-weight: 500;
+}
+
+.font-cabinet-bold {
+  font-family: "Cabinet", sans-serif;
   font-weight: 700;
+}
+
+.font-cabinet-extrabold {
+  font-family: "Cabinet", sans-serif;
+  font-weight: 800;
+}
+
+.font-cabinet-black {
+  font-family: "Cabinet", sans-serif;
+  font-weight: 900;
+}
+
+.logo-cabinet {
+  font-family: "Cabinet", sans-serif;
   letter-spacing: -0.01em;
 }
 
-.stat-sentient {
-  font-family: "Sentient", serif;
+.stat-cabinet {
+  font-family: "Cabinet", sans-serif;
   font-weight: 700;
 }
 
