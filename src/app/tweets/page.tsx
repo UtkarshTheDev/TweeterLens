@@ -1,4 +1,4 @@
-"erroruse client";
+"use client";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import {
