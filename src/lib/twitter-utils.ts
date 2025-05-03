@@ -90,11 +90,6 @@ interface SuccessResponse {
   next_cursor?: string;
 }
 
-interface ErrorResponse {
-  status: number;
-  message: string;
-}
-
 // Simple throttle implementation
 export function createThrottle(
   maxRequestsPerInterval: number,
@@ -323,14 +318,6 @@ interface FetchFromSocialDataInput {
   apiKey: string;
 }
 
-interface Tweet {
-  id: string;
-  id_str: string;
-  tweet_created_at?: string;
-  created_at: string;
-  [key: string]: any;
-}
-
 async function fetchFromSocialData(
   input: FetchFromSocialDataInput
 ): Promise<void> {
@@ -413,7 +400,7 @@ async function fetchFromSocialData(
     previousResponses.add(requestSignature);
 
     // Prepare request URL
-    const options: any = {};
+    const options: RequestInit = {};
 
     // Build the URL for the social data API
     let url = `${HOST_URL}${SEARCH_ENDPOINT}?query=${encodeURIComponent(
@@ -458,7 +445,9 @@ async function fetchFromSocialData(
     const nextCursor = data.next_cursor;
 
     // Check for duplicate responses by creating a signature of the tweet IDs
-    const responseSignature = tweets.map((t: Tweet) => t.id_str).join(",");
+    const responseSignature = tweets
+      .map((t: PartialTweet) => t.id_str)
+      .join(",");
     const duplicateCount = duplicateResponses.get(responseSignature) || 0;
     duplicateResponses.set(responseSignature, duplicateCount + 1);
 
@@ -468,11 +457,13 @@ async function fetchFromSocialData(
       // Get the smallest tweet ID in the batch to use as next max_id
       if (tweets.length > 0) {
         // Sort to find smallest ID
-        const sortedTweets = [...tweets].sort((a: Tweet, b: Tweet) => {
-          const aId = BigInt(a.id_str);
-          const bId = BigInt(b.id_str);
-          return Number(aId - bId);
-        });
+        const sortedTweets = [...tweets].sort(
+          (a: PartialTweet, b: PartialTweet) => {
+            const aId = BigInt(a.id_str);
+            const bId = BigInt(b.id_str);
+            return Number(aId - bId);
+          }
+        );
 
         const smallestId = sortedTweets[0].id_str;
         const newMaxId = (BigInt(smallestId) - BigInt(1)).toString();
@@ -501,7 +492,7 @@ async function fetchFromSocialData(
     let newTweetsCount = 0;
 
     // Normalize and add tweet timestamps for consistency
-    tweets.forEach((tweet: Tweet) => {
+    tweets.forEach((tweet: PartialTweet) => {
       // Normalize ID to always use id_str
       const idKey = tweet.id_str;
 
@@ -565,11 +556,13 @@ async function fetchFromSocialData(
       // Rather than stopping, let's try a different max_id approach like tweets.js
       if (tweets.length > 0) {
         // Sort to find smallest ID
-        const sortedTweets = [...tweets].sort((a: Tweet, b: Tweet) => {
-          const aId = BigInt(a.id_str);
-          const bId = BigInt(b.id_str);
-          return Number(aId - bId);
-        });
+        const sortedTweets = [...tweets].sort(
+          (a: PartialTweet, b: PartialTweet) => {
+            const aId = BigInt(a.id_str);
+            const bId = BigInt(b.id_str);
+            return Number(aId - bId);
+          }
+        );
 
         const smallestId = sortedTweets[0].id_str;
         const newMaxId = (BigInt(smallestId) - BigInt(1)).toString();

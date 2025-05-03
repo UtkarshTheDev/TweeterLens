@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
   Search,
   Twitter,
@@ -12,15 +12,6 @@ import {
   PaintBucket,
   ChevronDown,
   Check,
-  MessageCircle,
-  Repeat,
-  Heart,
-  Bookmark,
-  Eye,
-  MessageSquare,
-  BarChart2,
-  Hash,
-  Reply,
   AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -43,7 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { TweetData } from "@/components/TweetData";
-import { ApiKeyInput } from "@/components/ApiKeyInput";
+// import { ApiKeyInput } from "@/components/ApiKeyInput";
 import { TwitterUser, PartialTweet } from "@/lib/twitter-utils";
 
 const themes = [
@@ -289,9 +280,9 @@ export const TwitterFeed = ({
     }
   }, [initialUsername]);
 
-  const handleApiKeySaved = (key: string) => {
-    setApiKey(key);
-  };
+  // const handleApiKeySaved = (key: string) => {
+  //   setApiKey(key);
+  // };
 
   const handleSearch = () => {
     if (!username.trim()) return;
@@ -359,7 +350,7 @@ export const TwitterFeed = ({
   ];
 
   // Only enable the query when both username and apiKey are available
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error} = useQuery({
     queryKey: ["twitterStats", searchUsername, apiKey],
     queryFn: () =>
       fetchUserStats(searchUsername, apiKey) as Promise<TwitterStatsResponse>,
@@ -511,7 +502,7 @@ export const TwitterFeed = ({
                   >
                     @{searchUsername}
                   </motion.span>
-                  's X Contributions
+                  &apos;s X Contributions
                 </h2>
                 <p className="text-sm text-gray-400">
                   <span className="stat-cabinet">
@@ -1015,8 +1006,8 @@ export const Tweets = ({
     data && "total_profile_tweets" in data
       ? data.total_profile_tweets
       : undefined;
-  const payment_error =
-    data && "payment_error" in data ? data.payment_error : undefined;
+  // const payment_error =
+  //   data && "payment_error" in data ? data.payment_error : undefined;
 
   return (
     <div className="space-y-6">
@@ -1076,37 +1067,7 @@ export const Tweets = ({
   );
 };
 
-interface TabButtonProps {
-  isActive: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}
 
-const TabButton = ({ isActive, onClick, children }: TabButtonProps) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
-      isActive && "border-b-2 border-purple-500 text-white",
-      !isActive && "text-gray-400"
-    )}
-  >
-    {children}
-  </button>
-);
-
-const TypeButton = ({ isActive, onClick, children }: TabButtonProps) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-white/5",
-      isActive && "border-b-2 border-purple-500 text-white",
-      !isActive && "text-gray-400"
-    )}
-  >
-    {children}
-  </button>
-);
 
 // Add ErrorState function component to fix error handling
 const ErrorState = ({ error }: { error: unknown }) => (

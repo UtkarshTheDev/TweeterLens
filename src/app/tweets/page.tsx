@@ -1,9 +1,7 @@
-"use client";
+"erroruse client";
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import {
-  Search,
   ArrowRight,
   RefreshCw,
   User,
@@ -12,18 +10,12 @@ import {
   AlertCircle,
   Twitter,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
-import { TweetData } from "@/components/TweetData";
 import { Spinner } from "@/components/ui/spinner";
 import { Tweets } from "@/components/Tweets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
@@ -32,17 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ApiKeyInput } from "@/components/ApiKeyInput";
 import { PartialTweet, TwitterUser } from "@/lib/twitter-utils";
+import Link from "next/link";
+import Image from "next/image";
 
 interface UserProfileResponse {
   user: TwitterUser;
@@ -117,8 +101,8 @@ const fetchTweets = async (
 export default function TweetsPage() {
   const [username, setUsername] = useState<string>("");
   const [validationMessage, setValidationMessage] = useState<string>("");
-  const [data, setData] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [data, setData] = useState<TwitterResponse | null>(null);
+  const [userProfile, setUserProfile] = useState<TwitterUser | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -314,9 +298,11 @@ export default function TweetsPage() {
       if (result.available_years && result.available_years.length > 0) {
         setAvailableYears(result.available_years);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error loading all tweets:", err);
-      setError(err.message || "Failed to load all tweets");
+      setError(
+        err instanceof Error ? err.message : "Failed to load all tweets"
+      );
     } finally {
       setIsRefreshing(false);
     }
@@ -375,12 +361,13 @@ export default function TweetsPage() {
               </h1>
             </div>
 
-            <a
+            <Link
               href="/"
-              className="rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm text-white transition-all hover:border-indigo-500/50"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             >
-              Back to Home
-            </a>
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Home</span>
+            </Link>
           </div>
         </div>
       </header>
@@ -480,7 +467,7 @@ export default function TweetsPage() {
               <div className="flex flex-col gap-6">
                 <div className="flex gap-4 items-center">
                   {userProfile.profile_image_url_https && (
-                    <img
+                    <Image
                       src={userProfile.profile_image_url_https.replace(
                         "_normal",
                         ""

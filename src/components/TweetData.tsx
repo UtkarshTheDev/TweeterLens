@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Twitter,
   Calendar,
   MessageCircle,
   Heart,
@@ -14,8 +13,8 @@ import {
   User,
   Link,
   ExternalLink,
+  Twitter,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,12 +24,6 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import { PartialTweet, TwitterUser } from "@/lib/twitter-utils";
 
@@ -69,7 +62,8 @@ export const TweetData = ({ data }: TweetDataProps) => {
     try {
       const match = source.match(/>([^<]+)</);
       return match ? match[1] : "Twitter";
-    } catch (_) {
+    } catch (error) {
+      console.log(error)
       return "Twitter";
     }
   };
@@ -416,7 +410,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                                     </span>
                                     <div className="mt-1 flex flex-wrap gap-1">
                                       {tweet.entities.hashtags.map(
-                                        (tag: any, i: number) => (
+                                        (tag, i: number) => (
                                           <Badge
                                             key={`${tweetKey}-tag-${i}`}
                                             variant="outline"
@@ -438,7 +432,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                                     </span>
                                     <div className="mt-1 flex flex-wrap gap-1">
                                       {tweet.entities.user_mentions.map(
-                                        (mention: any, i: number) => (
+                                        (mention, i: number) => (
                                           <Badge
                                             key={`${tweetKey}-mention-${i}`}
                                             variant="outline"
@@ -458,7 +452,7 @@ export const TweetData = ({ data }: TweetDataProps) => {
                                     <span className="text-gray-500">URLs</span>
                                     <div className="mt-1 flex flex-col gap-1">
                                       {tweet.entities.urls.map(
-                                        (url: any, i: number) => (
+                                        (url, i: number) => (
                                           <a
                                             key={`${tweetKey}-url-${i}`}
                                             href={url.expanded_url}

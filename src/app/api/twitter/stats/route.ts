@@ -195,7 +195,7 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
   }
 
   // Group tweets by date to calculate streaks
-  const tweetsByDate: Record<string, any[]> = {};
+  const tweetsByDate: Record<string, PartialTweet[]> = {};
   yearTweets.forEach((tweet) => {
     const dateKey = new Date(tweet.tweet_created_at || tweet.created_at)
       .toISOString()
@@ -369,14 +369,15 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
     count: Math.max(...monthCounts),
   };
 
-  // Extract most used hashtags
+  // Calculate hashtag statistics
   const hashtagCounts: Record<string, number> = {};
-
   yearTweets.forEach((tweet) => {
-    if (tweet.entities?.hashtags && Array.isArray(tweet.entities.hashtags)) {
-      tweet.entities.hashtags.forEach((tag: any) => {
-        const hashtag = tag.text.toLowerCase();
-        hashtagCounts[hashtag] = (hashtagCounts[hashtag] || 0) + 1;
+    if (tweet.entities && tweet.entities.hashtags) {
+      tweet.entities.hashtags.forEach((tag) => {
+        if (tag.text) {
+          const tagText = tag.text.toLowerCase();
+          hashtagCounts[tagText] = (hashtagCounts[tagText] || 0) + 1;
+        }
       });
     }
   });
@@ -460,7 +461,16 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
 // First, define an interface for our API response
 interface TwitterStatsResponse {
   contributionGraph: {
-    graph: any[][];
+    graph: Array<
+      Array<{
+        date: string;
+        count: number;
+        level: number;
+        month: number;
+        day: number;
+        weekday: number;
+      }>
+    >;
     monthRanges: Array<{
       month: number;
       startWeek: number;
@@ -490,11 +500,6 @@ interface TwitterStatsResponse {
     retweets: number;
     engagement: number;
   }>;
-}
-
-// Define a type for the hashtag entity
-interface HashtagEntity {
-  text: string;
 }
 
 export async function GET(req: Request) {

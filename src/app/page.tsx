@@ -11,7 +11,6 @@ import {
   ArrowRight,
   Key,
   BarChart3,
-  Sparkles,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,7 @@ export default function Home() {
     }
   }, []);
 
-  const handleApiKeySaved = (key: string) => {
+  const handleApiKeySaved = () => {
     setHasApiKey(true);
     setShowApiKeyInput(false);
   };
