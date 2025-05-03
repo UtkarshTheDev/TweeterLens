@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { cabinet } from "./fonts";
 import { GeistSans } from "geist/font/sans";
-
+import { Analytics } from '@vercel/analytics/next';
 export const metadata: Metadata = {
   title: "TweeterLens - Twitter Analytics & Visualization",
   description:
@@ -31,7 +31,12 @@ export default function RootLayout({
           {/* Lighter grid pattern */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f08_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:14px_24px]"></div>
         </div>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+        
+          <Analytics /> 
+
+        </Providers>
       </body>
     </html>
   );
