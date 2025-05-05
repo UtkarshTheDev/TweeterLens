@@ -1,10 +1,9 @@
 "use client";
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import {
   Search,
-  Twitter,
   Calendar,
   ArrowRight,
   Download,
@@ -13,6 +12,8 @@ import {
   ChevronDown,
   Check,
   AlertTriangle,
+  Heart,
+  Repeat,
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { cn } from "@/lib/utils";
@@ -176,6 +177,85 @@ interface TwitterStatsResponse {
       }>
     >;
     monthRanges: MonthRange[];
+  };
+  // New stats
+  viralTweet: {
+    text: string;
+    date: string;
+    likes: number;
+    retweets: number;
+    engagement: number;
+    engagementRatio: number;
+  } | null;
+  postingTimeAnalysis: {
+    peakHour: string;
+    hourlyDistribution: Array<{
+      hour: number;
+      count: number;
+      percentage: string;
+      formattedHour: string;
+    }>;
+  };
+  tweetSources: Array<{
+    source: string;
+    count: number;
+    percentage: string;
+  }>;
+  tweetLengthAnalysis: {
+    short: { min: number; max: number; count: number; engagement: number };
+    medium: { min: number; max: number; count: number; engagement: number };
+    long: { min: number; max: number; count: number; engagement: number };
+    optimalLengthCategory: string;
+  };
+  mediaImpact: {
+    withMedia: {
+      count: number;
+      percentage: string;
+      avgLikes: number;
+      avgRetweets: number;
+    };
+    textOnly: {
+      count: number;
+      percentage: string;
+      avgLikes: number;
+      avgRetweets: number;
+    };
+    engagementBoost: {
+      likes: number;
+      retweets: number;
+    };
+  };
+  consistencyMetrics: {
+    daysWithTweets: number;
+    consistencyScore: number;
+    regularityScore: number;
+  };
+  engagementEfficiency: {
+    engagementPerPost: number;
+    engagementPerDay: number;
+    efficiencyScore: number;
+  };
+  conversationMetrics: {
+    replyCount: number;
+    replyPercentage: number;
+    uniqueConversations: number;
+  };
+  tweetTimingEffectiveness: {
+    optimalPostingTime: {
+      hour: number;
+      formattedHour: string;
+      avgEngagement: number;
+    };
+    hourlyEngagementData: Array<{
+      hour: number;
+      formattedHour: string;
+      count: number;
+      avgEngagement: number;
+    }>;
+  };
+  twitterPersonality: {
+    type: string;
+    description: string;
   };
 }
 
@@ -972,6 +1052,416 @@ export const TwitterFeed = ({
                     </CardContent>
                   </Card>
                 )}
+
+              {/* Viral Tweet Section */}
+              {(data as TwitterStatsResponse).viralTweet && (
+                <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+                    <h3 className="text-sm font-medium text-gray-300">
+                      Your Most Viral Tweet
+                    </h3>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                      <p className="text-white mb-3">
+                        {(data as TwitterStatsResponse).viralTweet?.text}
+                      </p>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-400">
+                          {(data as TwitterStatsResponse).viralTweet?.date}
+                        </span>
+                        <div className="flex gap-4">
+                          <span className="flex items-center gap-1 text-red-400">
+                            <Heart className="h-4 w-4" />
+                            {(data as TwitterStatsResponse).viralTweet?.likes}
+                          </span>
+                          <span className="flex items-center gap-1 text-green-400">
+                            <Repeat className="h-4 w-4" />
+                            {
+                              (data as TwitterStatsResponse).viralTweet
+                                ?.retweets
+                            }
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-white/5">
+                        <p className="text-sm text-purple-400 font-medium">
+                          This tweet performed{" "}
+                          {
+                            (data as TwitterStatsResponse).viralTweet
+                              ?.engagementRatio
+                          }
+                          x better than your average tweet!
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Twitter Personality Section */}
+              <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+                  <h3 className="text-sm font-medium text-gray-300">
+                    Your Twitter Personality
+                  </h3>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4 text-center">
+                    <h4 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                      {(data as TwitterStatsResponse).twitterPersonality.type}
+                    </h4>
+                    <p className="text-gray-300 mt-2">
+                      {
+                        (data as TwitterStatsResponse).twitterPersonality
+                          .description
+                      }
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Posting Patterns Section */}
+              <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+                  <h3 className="text-sm font-medium text-gray-300">
+                    Posting Patterns
+                  </h3>
+                </CardHeader>
+                <CardContent className="pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Posting Time Analysis */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Peak Posting Time
+                    </h4>
+                    <p className="text-xl font-bold text-blue-400">
+                      {
+                        (data as TwitterStatsResponse).postingTimeAnalysis
+                          .peakHour
+                      }
+                    </p>
+                    <div className="mt-3 h-24 flex items-end gap-1">
+                      {(
+                        data as TwitterStatsResponse
+                      ).postingTimeAnalysis.hourlyDistribution
+                        .filter((_, i) => i % 2 === 0) // Show every other hour to save space
+                        .map((hour, i) => (
+                          <div
+                            key={i}
+                            className="flex flex-col items-center flex-1"
+                          >
+                            <div
+                              className="w-full bg-blue-500/30 rounded-t"
+                              style={{
+                                height: `${Math.max(
+                                  5,
+                                  (hour.count /
+                                    Math.max(
+                                      ...(
+                                        data as TwitterStatsResponse
+                                      ).postingTimeAnalysis.hourlyDistribution.map(
+                                        (h) => h.count
+                                      )
+                                    )) *
+                                    100
+                                )}%`,
+                              }}
+                            ></div>
+                            <span className="text-xs text-gray-500 mt-1">
+                              {hour.formattedHour}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Optimal Posting Time */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Best Time for Engagement
+                    </h4>
+                    <p className="text-xl font-bold text-green-400">
+                      {
+                        (data as TwitterStatsResponse).tweetTimingEffectiveness
+                          .optimalPostingTime.formattedHour
+                      }
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Posts at this time average{" "}
+                      {
+                        (data as TwitterStatsResponse).tweetTimingEffectiveness
+                          .optimalPostingTime.avgEngagement
+                      }{" "}
+                      engagements
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-white/5">
+                      <p className="text-sm text-purple-400">
+                        Posting at your optimal time could increase engagement
+                        by up to
+                        {Math.round(
+                          ((data as TwitterStatsResponse)
+                            .tweetTimingEffectiveness.optimalPostingTime
+                            .avgEngagement /
+                            ((data as TwitterStatsResponse).engagementEfficiency
+                              .engagementPerPost || 1)) *
+                            100 -
+                            100
+                        )}
+                        %
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Content Strategy Section */}
+              <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+                  <h3 className="text-sm font-medium text-gray-300">
+                    Content Strategy Insights
+                  </h3>
+                </CardHeader>
+                <CardContent className="pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Tweet Length Analysis */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Optimal Tweet Length
+                    </h4>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-xl font-bold text-indigo-400 capitalize">
+                          {
+                            (data as TwitterStatsResponse).tweetLengthAnalysis
+                              .optimalLengthCategory
+                          }
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {(data as TwitterStatsResponse).tweetLengthAnalysis
+                            .optimalLengthCategory === "short"
+                            ? "0-50"
+                            : (data as TwitterStatsResponse).tweetLengthAnalysis
+                                .optimalLengthCategory === "medium"
+                            ? "51-150"
+                            : "151-280"}{" "}
+                          characters
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {Object.entries(
+                          (data as TwitterStatsResponse).tweetLengthAnalysis
+                        )
+                          .filter(([key]) => key !== "optimalLengthCategory")
+                          .map(([key, value]) => {
+                            // Type assertion to ensure TypeScript knows this is a length category
+                            const lengthCategory = value as {
+                              min: number;
+                              max: number;
+                              count: number;
+                              engagement: number;
+                            };
+                            return (
+                              <div key={key} className="text-center">
+                                <div
+                                  className={`h-16 w-4 rounded-t ${
+                                    key ===
+                                    (data as TwitterStatsResponse)
+                                      .tweetLengthAnalysis.optimalLengthCategory
+                                      ? "bg-indigo-500"
+                                      : "bg-gray-700"
+                                  }`}
+                                  style={{
+                                    height: `${Math.max(
+                                      20,
+                                      (lengthCategory.count /
+                                        (data as TwitterStatsResponse)
+                                          .totalPosts) *
+                                        100
+                                    )}px`,
+                                  }}
+                                ></div>
+                                <span className="text-xs text-gray-500 capitalize">
+                                  {key.charAt(0)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Media Impact */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Media Impact
+                    </h4>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-xl font-bold text-pink-400">
+                          {
+                            (data as TwitterStatsResponse).mediaImpact
+                              .engagementBoost.likes
+                          }
+                          x
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          More likes with media
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-green-400">
+                          {
+                            (data as TwitterStatsResponse).mediaImpact
+                              .engagementBoost.retweets
+                          }
+                          x
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          More retweets with media
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-white/5">
+                      <p className="text-sm text-purple-400">
+                        {
+                          (data as TwitterStatsResponse).mediaImpact.withMedia
+                            .percentage
+                        }{" "}
+                        of your tweets include media
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Consistency & Engagement Section */}
+              <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+                  <h3 className="text-sm font-medium text-gray-300">
+                    Consistency & Engagement
+                  </h3>
+                </CardHeader>
+                <CardContent className="pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Consistency Score */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Consistency Score
+                    </h4>
+                    <div className="flex items-center gap-4">
+                      <div className="relative h-20 w-20">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-20"></div>
+                        <div className="absolute inset-2 rounded-full bg-black"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-2xl font-bold text-blue-400">
+                            {
+                              (data as TwitterStatsResponse).consistencyMetrics
+                                .consistencyScore
+                            }
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">
+                          You tweeted on{" "}
+                          {
+                            (data as TwitterStatsResponse).consistencyMetrics
+                              .daysWithTweets
+                          }{" "}
+                          days this year
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          Regularity score:{" "}
+                          {
+                            (data as TwitterStatsResponse).consistencyMetrics
+                              .regularityScore
+                          }
+                          /100
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Engagement Efficiency */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Engagement Efficiency
+                    </h4>
+                    <p className="text-xl font-bold text-purple-400">
+                      {
+                        (data as TwitterStatsResponse).engagementEfficiency
+                          .efficiencyScore
+                      }
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Engagements per post per day
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-white/5">
+                      <p className="text-sm text-blue-400">
+                        {
+                          (data as TwitterStatsResponse).engagementEfficiency
+                            .engagementPerPost
+                        }{" "}
+                        engagements per post
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Conversation Metrics */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Conversation Metrics
+                    </h4>
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="text-xl font-bold text-blue-400">
+                          {
+                            (data as TwitterStatsResponse).conversationMetrics
+                              .replyPercentage
+                          }
+                          %
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Tweets are replies
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold text-indigo-400">
+                          {
+                            (data as TwitterStatsResponse).conversationMetrics
+                              .uniqueConversations
+                          }
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Unique conversations
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tweet Sources */}
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-2">
+                      Tweet Sources
+                    </h4>
+                    <div className="space-y-2">
+                      {(data as TwitterStatsResponse).tweetSources
+                        .slice(0, 3)
+                        .map((source, i) => (
+                          <div
+                            key={i}
+                            className="flex justify-between items-center"
+                          >
+                            <span className="text-sm text-gray-300">
+                              {source.source}
+                            </span>
+                            <span className="text-sm text-blue-400">
+                              {source.percentage}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           </motion.div>
         )}
