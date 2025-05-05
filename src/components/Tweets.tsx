@@ -201,32 +201,10 @@ interface TwitterStatsResponse {
     count: number;
     percentage: string;
   }>;
-  tweetLengthAnalysis: {
-    short: { min: number; max: number; count: number; engagement: number };
-    medium: { min: number; max: number; count: number; engagement: number };
-    long: { min: number; max: number; count: number; engagement: number };
-    optimalLengthCategory: string;
-  };
-  mediaImpact: {
-    withMedia: {
-      count: number;
-      percentage: string;
-      avgLikes: number;
-      avgRetweets: number;
-    };
-    textOnly: {
-      count: number;
-      percentage: string;
-      avgLikes: number;
-      avgRetweets: number;
-    };
-    engagementBoost: {
-      likes: number;
-      retweets: number;
-    };
-  };
+
   consistencyMetrics: {
     daysWithTweets: number;
+    daysPassed: number;
     consistencyScore: number;
     regularityScore: number;
   };
@@ -1223,125 +1201,6 @@ export const TwitterFeed = ({
                 </CardContent>
               </Card>
 
-              {/* Content Strategy Section */}
-              <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
-                  <h3 className="text-sm font-medium text-gray-300">
-                    Content Strategy Insights
-                  </h3>
-                </CardHeader>
-                <CardContent className="pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Tweet Length Analysis */}
-                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">
-                      Optimal Tweet Length
-                    </h4>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-xl font-bold text-indigo-400 capitalize">
-                          {
-                            (data as TwitterStatsResponse).tweetLengthAnalysis
-                              .optimalLengthCategory
-                          }
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          {(data as TwitterStatsResponse).tweetLengthAnalysis
-                            .optimalLengthCategory === "short"
-                            ? "0-50"
-                            : (data as TwitterStatsResponse).tweetLengthAnalysis
-                                .optimalLengthCategory === "medium"
-                            ? "51-150"
-                            : "151-280"}{" "}
-                          characters
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        {Object.entries(
-                          (data as TwitterStatsResponse).tweetLengthAnalysis
-                        )
-                          .filter(([key]) => key !== "optimalLengthCategory")
-                          .map(([key, value]) => {
-                            // Type assertion to ensure TypeScript knows this is a length category
-                            const lengthCategory = value as {
-                              min: number;
-                              max: number;
-                              count: number;
-                              engagement: number;
-                            };
-                            return (
-                              <div key={key} className="text-center">
-                                <div
-                                  className={`h-16 w-4 rounded-t ${
-                                    key ===
-                                    (data as TwitterStatsResponse)
-                                      .tweetLengthAnalysis.optimalLengthCategory
-                                      ? "bg-indigo-500"
-                                      : "bg-gray-700"
-                                  }`}
-                                  style={{
-                                    height: `${Math.max(
-                                      20,
-                                      (lengthCategory.count /
-                                        (data as TwitterStatsResponse)
-                                          .totalPosts) *
-                                        100
-                                    )}px`,
-                                  }}
-                                ></div>
-                                <span className="text-xs text-gray-500 capitalize">
-                                  {key.charAt(0)}
-                                </span>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Media Impact */}
-                  <div className="rounded-lg border border-white/10 bg-black/30 p-4">
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">
-                      Media Impact
-                    </h4>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-xl font-bold text-pink-400">
-                          {
-                            (data as TwitterStatsResponse).mediaImpact
-                              .engagementBoost.likes
-                          }
-                          x
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          More likes with media
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-green-400">
-                          {
-                            (data as TwitterStatsResponse).mediaImpact
-                              .engagementBoost.retweets
-                          }
-                          x
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          More retweets with media
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-white/5">
-                      <p className="text-sm text-purple-400">
-                        {
-                          (data as TwitterStatsResponse).mediaImpact.withMedia
-                            .percentage
-                        }{" "}
-                        of your tweets include media
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Consistency & Engagement Section */}
               <Card className="mt-4 rounded-xl border border-white/10 bg-gradient-to-r from-zinc-900/40 to-black/80 backdrop-blur-xl">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
@@ -1375,7 +1234,12 @@ export const TwitterFeed = ({
                             (data as TwitterStatsResponse).consistencyMetrics
                               .daysWithTweets
                           }{" "}
-                          days this year
+                          of{" "}
+                          {
+                            (data as TwitterStatsResponse).consistencyMetrics
+                              .daysPassed
+                          }{" "}
+                          days
                         </p>
                         <p className="text-sm text-gray-400 mt-1">
                           Regularity score:{" "}
@@ -1471,6 +1335,22 @@ export const TwitterFeed = ({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Disclaimer Note */}
+              <div className="mt-6 text-center">
+                <p className="text-xs text-gray-500">
+                  Note: Stats are calculated based on available tweets and may
+                  not represent your complete Twitter activity. Due to API
+                  limitations, some tweets or engagement metrics might be
+                  missing.
+                </p>
+                {data && "totalPosts" in data && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Analysis based on{" "}
+                    {(data as TwitterStatsResponse).totalPosts} tweets.
+                  </p>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}

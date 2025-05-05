@@ -539,142 +539,23 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
     }))
     .sort((a, b) => b.count - a.count);
 
-  // 4. Analyze tweet lengths
-  const lengthCategories = {
-    short: { min: 0, max: 50, count: 0, engagement: 0 },
-    medium: { min: 51, max: 150, count: 0, engagement: 0 },
-    long: { min: 151, max: 280, count: 0, engagement: 0 },
-  };
+  // Content Strategy Insights (Tweet Length and Media Impact) removed
 
-  yearTweets.forEach((tweet) => {
-    const text = tweet.full_text || tweet.text || "";
-    const length = text.length;
-    const engagement = (tweet.favorite_count || 0) + (tweet.retweet_count || 0);
-
-    if (length <= lengthCategories.short.max) {
-      lengthCategories.short.count++;
-      lengthCategories.short.engagement += engagement;
-    } else if (length <= lengthCategories.medium.max) {
-      lengthCategories.medium.count++;
-      lengthCategories.medium.engagement += engagement;
-    } else {
-      lengthCategories.long.count++;
-      lengthCategories.long.engagement += engagement;
-    }
-  });
-
-  // Calculate average engagement per category
-  Object.keys(lengthCategories).forEach((key) => {
-    const category = lengthCategories[key as keyof typeof lengthCategories];
-    category.engagement =
-      category.count > 0
-        ? parseFloat((category.engagement / category.count).toFixed(1))
-        : 0;
-  });
-
-  // Determine optimal tweet length
-  const optimalLengthCategory = Object.entries(lengthCategories).sort(
-    (a, b) => b[1].engagement - a[1].engagement
-  )[0][0];
-
-  // 5. Analyze media impact
-  const mediaStats = {
-    withMedia: { count: 0, likes: 0, retweets: 0 },
-    textOnly: { count: 0, likes: 0, retweets: 0 },
-  };
-
-  yearTweets.forEach((tweet) => {
-    const hasMedia = tweet.entities?.urls?.some(
-      (url) =>
-        url.expanded_url?.includes("photo") ||
-        url.expanded_url?.includes("video")
-    );
-
-    if (hasMedia) {
-      mediaStats.withMedia.count++;
-      mediaStats.withMedia.likes += tweet.favorite_count || 0;
-      mediaStats.withMedia.retweets += tweet.retweet_count || 0;
-    } else {
-      mediaStats.textOnly.count++;
-      mediaStats.textOnly.likes += tweet.favorite_count || 0;
-      mediaStats.textOnly.retweets += tweet.retweet_count || 0;
-    }
-  });
-
-  // Calculate media impact metrics
-  const mediaImpact = {
-    withMedia: {
-      count: mediaStats.withMedia.count,
-      percentage:
-        totalPosts > 0
-          ? ((mediaStats.withMedia.count / totalPosts) * 100).toFixed(1) + "%"
-          : "0%",
-      avgLikes:
-        mediaStats.withMedia.count > 0
-          ? parseFloat(
-              (mediaStats.withMedia.likes / mediaStats.withMedia.count).toFixed(
-                1
-              )
-            )
-          : 0,
-      avgRetweets:
-        mediaStats.withMedia.count > 0
-          ? parseFloat(
-              (
-                mediaStats.withMedia.retweets / mediaStats.withMedia.count
-              ).toFixed(1)
-            )
-          : 0,
-    },
-    textOnly: {
-      count: mediaStats.textOnly.count,
-      percentage:
-        totalPosts > 0
-          ? ((mediaStats.textOnly.count / totalPosts) * 100).toFixed(1) + "%"
-          : "0%",
-      avgLikes:
-        mediaStats.textOnly.count > 0
-          ? parseFloat(
-              (mediaStats.textOnly.likes / mediaStats.textOnly.count).toFixed(1)
-            )
-          : 0,
-      avgRetweets:
-        mediaStats.textOnly.count > 0
-          ? parseFloat(
-              (
-                mediaStats.textOnly.retweets / mediaStats.textOnly.count
-              ).toFixed(1)
-            )
-          : 0,
-    },
-    engagementBoost: {
-      likes:
-        mediaStats.textOnly.count > 0 && mediaStats.withMedia.count > 0
-          ? parseFloat(
-              (
-                mediaStats.withMedia.likes /
-                mediaStats.withMedia.count /
-                (mediaStats.textOnly.likes / mediaStats.textOnly.count)
-              ).toFixed(1)
-            )
-          : 0,
-      retweets:
-        mediaStats.textOnly.count > 0 && mediaStats.withMedia.count > 0
-          ? parseFloat(
-              (
-                mediaStats.withMedia.retweets /
-                mediaStats.withMedia.count /
-                (mediaStats.textOnly.retweets / mediaStats.textOnly.count)
-              ).toFixed(1)
-            )
-          : 0,
-    },
-  };
-
-  // 6. Calculate consistency score
+  // 6. Calculate consistency score based on days passed in the current year
   const daysWithTweets = Object.keys(tweetsByDate).length;
+
+  // Calculate days passed in the current year
+  const currentDate = new Date();
+  const isCurrentYear = year === currentDate.getFullYear();
+
+  // If it's the current year, use days passed so far; otherwise use full year
+  const daysPassed = isCurrentYear
+    ? Math.floor((currentDate - new Date(year, 0, 1)) / (1000 * 60 * 60 * 24)) +
+      1
+    : daysInYear;
+
   const consistencyScore = parseFloat(
-    ((daysWithTweets / daysInYear) * 100).toFixed(1)
+    ((daysWithTweets / daysPassed) * 100).toFixed(1)
   );
 
   // Calculate posting pattern regularity
@@ -797,10 +678,6 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
     personalityType = "Consistent Creator";
     personalityDescription =
       "You're a reliable presence, consistently sharing content with your audience.";
-  } else if (mediaStats.withMedia.count > mediaStats.textOnly.count) {
-    personalityType = "Visual Storyteller";
-    personalityDescription =
-      "You prefer to communicate through rich media, sharing visual stories with your audience.";
   } else if (bestStreak > 14) {
     personalityType = "Dedicated Tweeter";
     personalityDescription =
@@ -835,13 +712,9 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
       hourlyDistribution,
     },
     tweetSources,
-    tweetLengthAnalysis: {
-      ...lengthCategories,
-      optimalLengthCategory,
-    },
-    mediaImpact,
     consistencyMetrics: {
       daysWithTweets,
+      daysPassed,
       consistencyScore,
       regularityScore,
     },
@@ -931,32 +804,10 @@ interface TwitterStatsResponse {
     count: number;
     percentage: string;
   }>;
-  tweetLengthAnalysis: {
-    short: { min: number; max: number; count: number; engagement: number };
-    medium: { min: number; max: number; count: number; engagement: number };
-    long: { min: number; max: number; count: number; engagement: number };
-    optimalLengthCategory: string;
-  };
-  mediaImpact: {
-    withMedia: {
-      count: number;
-      percentage: string;
-      avgLikes: number;
-      avgRetweets: number;
-    };
-    textOnly: {
-      count: number;
-      percentage: string;
-      avgLikes: number;
-      avgRetweets: number;
-    };
-    engagementBoost: {
-      likes: number;
-      retweets: number;
-    };
-  };
+
   consistencyMetrics: {
     daysWithTweets: number;
+    daysPassed: number;
     consistencyScore: number;
     regularityScore: number;
   };
