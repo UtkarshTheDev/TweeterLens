@@ -28,7 +28,7 @@
     "html-to-image": "^1.11.13",
     "ky": "^1.7.5",
     "lodash.debounce": "^4.0.8",
-    "lucide-react": "^0.482.0",
+    "lucide-react": "^0.507.0",
     "motion": "^12.5.0",
     "next": "15.2.2",
     "react": "^19.0.0",

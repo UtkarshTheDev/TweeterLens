@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import {
@@ -14,6 +14,10 @@ import {
   Check,
   AlertTriangle,
 } from "lucide-react";
+import {
+  TwitterFeedSkeleton,
+  TweetCardSkeleton,
+} from "@/components/SkeletonLoaders";
 import { cn } from "@/lib/utils";
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -350,12 +354,14 @@ export const TwitterFeed = ({
   ];
 
   // Only enable the query when both username and apiKey are available
-  const { data, isLoading, error} = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["twitterStats", searchUsername, apiKey],
     queryFn: () =>
       fetchUserStats(searchUsername, apiKey) as Promise<TwitterStatsResponse>,
     enabled: !!searchUsername && !!apiKey,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: false, // Don't refetch when component mounts
   });
 
   useEffect(() => {
@@ -458,22 +464,11 @@ export const TwitterFeed = ({
           </motion.div>
         )}
 
-        {/* Enhanced loading state */}
+        {/* Enhanced loading state with skeleton */}
         {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center p-8"
-          >
-            <div className="relative h-16 w-16">
-              <div className="absolute inset-0 h-full w-full animate-ping rounded-full bg-indigo-500 opacity-20"></div>
-              <div className="absolute inset-0 h-full w-full animate-pulse rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 opacity-40"></div>
-              <div className="absolute inset-2 flex items-center justify-center rounded-full bg-black">
-                <Twitter className="h-8 w-8 animate-pulse text-indigo-400" />
-              </div>
-            </div>
-            <p className="mt-4 text-gray-400">Fetching Twitter data...</p>
-          </motion.div>
+          <div className="w-full">
+            <TwitterFeedSkeleton />
+          </div>
         )}
 
         {/* Replace error display with the ErrorState component */}
@@ -1066,8 +1061,6 @@ export const Tweets = ({
     </div>
   );
 };
-
-
 
 // Add ErrorState function component to fix error handling
 const ErrorState = ({ error }: { error: unknown }) => (

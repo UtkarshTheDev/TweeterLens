@@ -14,11 +14,11 @@ import { Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface ApiKeyInputProps {
-  onApiKeySaved: (key: string) => void;
+interface ApiKeyConfigProps {
+  onApiKeySaved: () => void;
 }
 
-export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
+export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
   const [apiKey, setApiKey] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -32,9 +32,8 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
     if (savedApiKey) {
       setApiKey(savedApiKey);
       setIsSaved(true);
-      onApiKeySaved(savedApiKey);
     }
-  }, [onApiKeySaved]);
+  }, []);
 
   const handleSaveApiKey = () => {
     if (apiKey.trim()) {
@@ -45,7 +44,7 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
         localStorage.setItem("socialdataApiKey", apiKey);
         setIsSaved(true);
         setIsLoading(false);
-        onApiKeySaved(apiKey);
+        onApiKeySaved();
       }, 500);
     }
   };
@@ -130,6 +129,15 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
             </div>
           )}
 
+          {isSaved && (
+            <button
+              onClick={onApiKeySaved}
+              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors py-1"
+            >
+              Return to Search
+            </button>
+          )}
+
           {!isSaved && (
             <p className="text-xs text-gray-400 text-center">
               Don't have an API key? Get one for free below
@@ -196,4 +204,4 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
       </div>
     </div>
   );
-};
+}
