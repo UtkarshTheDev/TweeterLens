@@ -4,11 +4,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { Footer } from "@/components/Footer";
 import { TwitterFeedWrapper } from "@/components/TwitterFeedWrapper";
-import {
-  NavbarSkeleton,
-  HeroSkeleton,
-  FeaturesSkeleton,
-} from "@/components/SkeletonLoaders";
+import { SimpleLoadingSpinner } from "@/components/SimpleLoadingSpinner";
 
 export default function Home() {
   return (
@@ -21,14 +17,31 @@ export default function Home() {
       </div>
 
       {/* Navbar with SSR */}
-      <Suspense fallback={<NavbarSkeleton />}>
+      <Suspense
+        fallback={
+          <div className="sticky top-0 z-50 border-b border-white/10 bg-black/30 backdrop-blur-xl py-4">
+            <div className="container mx-auto px-4 flex justify-center">
+              <SimpleLoadingSpinner message="Loading navigation" size="sm" />
+            </div>
+          </div>
+        }
+      >
         <Navbar />
       </Suspense>
 
       <main className="flex-grow">
         {/* Hero section with SSR - Search input will be inside the hero section */}
         <div className="relative">
-          <Suspense fallback={<HeroSkeleton />}>
+          <Suspense
+            fallback={
+              <div className="container mx-auto px-4 py-16 flex justify-center">
+                <SimpleLoadingSpinner
+                  message="Loading hero section"
+                  size="lg"
+                />
+              </div>
+            }
+          >
             <HeroSection />
           </Suspense>
         </div>
@@ -42,7 +55,13 @@ export default function Home() {
         </div>
 
         {/* Feature highlights with SSR */}
-        <Suspense fallback={<FeaturesSkeleton />}>
+        <Suspense
+          fallback={
+            <div className="container mx-auto px-4 py-16 flex justify-center">
+              <SimpleLoadingSpinner message="Loading features" size="md" />
+            </div>
+          }
+        >
           <FeaturesSection />
         </Suspense>
       </main>

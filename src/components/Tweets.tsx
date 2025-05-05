@@ -14,10 +14,7 @@ import {
   Check,
   AlertTriangle,
 } from "lucide-react";
-import {
-  TwitterFeedSkeleton,
-  TweetCardSkeleton,
-} from "@/components/SkeletonLoaders";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
@@ -471,10 +468,12 @@ export const TwitterFeed = ({
           </motion.div>
         )}
 
-        {/* Enhanced loading state with skeleton */}
+        {/* Enhanced loading state with spinner and facts */}
         {isLoading && (
           <div className="w-full">
-            <TwitterFeedSkeleton />
+            <LoadingSpinner
+              message={`Fetching tweets for @${searchUsername}`}
+            />
           </div>
         )}
 

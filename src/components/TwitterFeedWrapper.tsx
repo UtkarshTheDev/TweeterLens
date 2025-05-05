@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { TwitterFeed } from "@/components/Tweets";
-import { TwitterFeedSkeleton } from "@/components/SkeletonLoaders";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useSearch } from "@/context/SearchContext";
 
 export function TwitterFeedWrapper() {
@@ -41,7 +41,11 @@ export function TwitterFeedWrapper() {
   }, []);
 
   if (!isClient) {
-    return <TwitterFeedSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <LoadingSpinner message="Preparing Twitter feed" />
+      </div>
+    );
   }
 
   return (
