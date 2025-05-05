@@ -260,6 +260,7 @@ interface TwitterStatsResponse {
 }
 
 const fetchUserStats = async (username: string, apiKey: string) => {
+  // Use cached data when available (no refresh parameter)
   const res = await fetch(
     `/api/twitter/stats?username=${username}&apiKey=${apiKey}`
   );
@@ -438,15 +439,23 @@ export const TwitterFeed = ({
   ];
 
   // Only enable the query when both username and apiKey are available
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["twitterStats", searchUsername, apiKey],
     queryFn: () =>
       fetchUserStats(searchUsername, apiKey) as Promise<TwitterStatsResponse>,
     enabled: !!searchUsername && !!apiKey,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes - use cached data for 5 minutes
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
-    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnMount: false, // Don't refetch when component mounts to use cached data
   });
+
+  // Only refetch when username changes (not on every mount)
+  useEffect(() => {
+    if (searchUsername && apiKey) {
+      console.log(`Username changed to ${searchUsername}, fetching data`);
+      refetch();
+    }
+  }, [searchUsername, apiKey, refetch]);
 
   useEffect(() => {
     if (data?.userJoinYear) {
@@ -548,8 +557,8 @@ export const TwitterFeed = ({
           </motion.div>
         )}
 
-        {/* Enhanced loading state with spinner and facts */}
-        {isLoading && (
+        {/* Enhanced loading state with spinner and facts - only show when no data is available yet */}
+        {isLoading && !data && (
           <div className="w-full">
             <LoadingSpinner
               message={`Fetching tweets for @${searchUsername}`}
@@ -560,7 +569,7 @@ export const TwitterFeed = ({
         {/* Replace error display with the ErrorState component */}
         {error && <ErrorState error={error} />}
 
-        {/* Enhanced data display */}
+        {/* Enhanced data display - show when data is available, even if refreshing in background */}
         {data && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

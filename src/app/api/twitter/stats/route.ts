@@ -994,6 +994,7 @@ export async function GET(req: Request) {
   const username = searchParams.get("username");
   const yearParam = searchParams.get("year");
   const apiKey = searchParams.get("apiKey");
+  const refresh = searchParams.get("refresh") === "true"; // New parameter to force refresh
 
   if (!username) {
     return NextResponse.json({ error: "Username required" }, { status: 400 });
@@ -1010,11 +1011,17 @@ export async function GET(req: Request) {
     // Create unique cache keys for the user stats
     const statsCacheKey = `twitter:stats:${username.toLowerCase()}:${year}`;
 
-    // Try to get cached stats first
-    const cachedStats = await redis.get(statsCacheKey);
-    if (cachedStats) {
-      console.log(`Serving ${username}'s stats for ${year} from cache...`);
-      return NextResponse.json(cachedStats);
+    // Try to get cached stats first (unless refresh is requested)
+    if (!refresh) {
+      const cachedStats = await redis.get(statsCacheKey);
+      if (cachedStats) {
+        console.log(`Serving ${username}'s stats for ${year} from cache...`);
+        return NextResponse.json(cachedStats);
+      }
+    } else {
+      console.log(
+        `Refresh requested, skipping cache for ${username} (${year})`
+      );
     }
 
     // Fetch the user profile to ensure the user exists
