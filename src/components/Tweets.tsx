@@ -40,10 +40,10 @@ import { TwitterUser, PartialTweet } from "@/lib/twitter-utils";
 
 const themes = [
   {
-    name: "GitHub",
-    colors: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
-    background: "bg-gray-50",
-    text: "text-gray-900",
+    name: "Tokyo Night",
+    colors: ["#1a1b26", "#414868", "#565f89", "#7aa2f7", "#bb9af7"],
+    background: "bg-[#16161e]",
+    text: "text-indigo-100",
   },
   {
     name: "Dracula",
@@ -52,40 +52,10 @@ const themes = [
     text: "text-gray-100",
   },
   {
-    name: "Nord",
-    colors: ["#2e3440", "#5e81ac", "#81a1c1", "#88c0d0", "#8fbcbb"],
-    background: "bg-[#242933]",
-    text: "text-blue-100",
-  },
-  {
-    name: "Tokyo Night",
-    colors: ["#1a1b26", "#414868", "#565f89", "#7aa2f7", "#bb9af7"],
-    background: "bg-[#16161e]",
-    text: "text-indigo-100",
-  },
-  {
-    name: "Monokai",
-    colors: ["#272822", "#f92672", "#fd971f", "#a6e22e", "#66d9ef"],
-    background: "bg-[#1e1f1c]",
-    text: "text-yellow-100",
-  },
-  {
-    name: "Solarized",
-    colors: ["#002b36", "#2aa198", "#268bd2", "#859900", "#b58900"],
-    background: "bg-[#073642]",
-    text: "text-cyan-100",
-  },
-  {
     name: "Catppuccin",
     colors: ["#1e1e2e", "#f5c2e7", "#cba6f7", "#94e2d5", "#a6e3a1"],
     background: "bg-[#181825]",
     text: "text-pink-100",
-  },
-  {
-    name: "Gruvbox",
-    colors: ["#282828", "#cc241d", "#d79921", "#98971a", "#458588"],
-    background: "bg-[#1d2021]",
-    text: "text-yellow-100",
   },
   {
     name: "Twitter Blue",
@@ -94,10 +64,16 @@ const themes = [
     text: "text-blue-100",
   },
   {
-    name: "Forest",
-    colors: ["#1e2a20", "#2d4a33", "#3e6446", "#5c8c5e", "#8ebe8b"],
-    background: "bg-[#1e2a20]",
-    text: "text-green-100",
+    name: "Neon",
+    colors: ["#000000", "#ff00ff", "#00ffff", "#ff0099", "#33ff00"],
+    background: "bg-black",
+    text: "text-pink-100",
+  },
+  {
+    name: "Nord",
+    colors: ["#2e3440", "#5e81ac", "#81a1c1", "#88c0d0", "#8fbcbb"],
+    background: "bg-[#242933]",
+    text: "text-blue-100",
   },
   {
     name: "Ocean",
@@ -106,34 +82,10 @@ const themes = [
     text: "text-blue-100",
   },
   {
-    name: "Sunset",
-    colors: ["#1a202c", "#742a2a", "#c53030", "#f56565", "#feb2b2"],
-    background: "bg-[#1a202c]",
-    text: "text-red-100",
-  },
-  {
-    name: "Neon",
-    colors: ["#000000", "#ff00ff", "#00ffff", "#ff0099", "#33ff00"],
-    background: "bg-black",
-    text: "text-pink-100",
-  },
-  {
-    name: "Pastel",
-    colors: ["#f8fafc", "#fbd6d2", "#f8b4b4", "#f9a8d4", "#c7d2fe"],
-    background: "bg-[#f8fafc]",
-    text: "text-gray-900",
-  },
-  {
-    name: "Retro",
-    colors: ["#2c2a32", "#5e4fa1", "#f26d85", "#ffd166", "#63c7b2"],
-    background: "bg-[#2c2a32]",
-    text: "text-amber-100",
-  },
-  {
-    name: "Coffee",
-    colors: ["#20141d", "#42332c", "#624b3e", "#805c48", "#c08552"],
-    background: "bg-[#20141d]",
-    text: "text-amber-100",
+    name: "Monokai",
+    colors: ["#272822", "#f92672", "#fd971f", "#a6e22e", "#66d9ef"],
+    background: "bg-[#1e1f1c]",
+    text: "text-yellow-100",
   },
 ];
 
@@ -288,9 +240,10 @@ const formatDate = (dateString: string): string => {
 
 /**
  * Returns the appropriate CSS class for a given activity count
+ * For count=0, returns transparent background to show empty boxes
  */
 const getActivityColor = (count: number, theme: ThemeOption): string => {
-  if (count === 0) return "bg-gray-100 dark:bg-gray-800";
+  if (count === 0) return "transparent";
   if (count < 2) return theme.colors[0];
   if (count < 5) return theme.colors[1];
   if (count < 10) return theme.colors[2];
@@ -370,30 +323,214 @@ export const TwitterFeed = ({
   const handleExportImage = async () => {
     if (graphRef.current) {
       try {
-        const dataUrl = await toPng(graphRef.current, { cacheBust: true });
+        console.log("Exporting image...");
+        // Add a longer delay to ensure the graph is fully rendered
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Create a clone of the graph element to avoid font issues
+        const clone = graphRef.current.cloneNode(true) as HTMLElement;
+        document.body.appendChild(clone);
+
+        // Apply inline styles to the clone to ensure proper rendering
+        clone.style.position = "absolute";
+        clone.style.left = "-9999px";
+        clone.style.top = "-9999px";
+
+        // Apply the background color explicitly
+        const bgColor =
+          getComputedStyle(graphRef.current).backgroundColor || "#16161e";
+        clone.style.backgroundColor = bgColor;
+
+        // Ensure all text elements have their computed styles applied
+        const textElements = clone.querySelectorAll("div, span, p");
+        textElements.forEach((el) => {
+          const element = el as HTMLElement;
+          const computedStyle = window.getComputedStyle(element);
+          element.style.fontFamily = "Arial, sans-serif"; // Use web-safe font
+          element.style.color = computedStyle.color;
+          element.style.fontSize = computedStyle.fontSize;
+          element.style.fontWeight = computedStyle.fontWeight;
+        });
+
+        // Use toCanvas instead of toPng to avoid font issues
+        const canvas = await import("html-to-image").then((module) =>
+          module.toCanvas(clone, {
+            cacheBust: true,
+            pixelRatio: 2, // Higher quality
+            skipFonts: true, // Skip font detection which causes issues
+            backgroundColor: bgColor,
+          })
+        );
+
+        // Convert canvas to PNG
+        const dataUrl = canvas.toDataURL("image/png");
+
+        // Clean up the clone
+        document.body.removeChild(clone);
+
+        // Create and trigger download
         const link = document.createElement("a");
         link.download = `${searchUsername}-x-contributions-${selectedYear}.png`;
         link.href = dataUrl;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+
+        console.log("Image exported successfully");
       } catch (err) {
         console.error("Error exporting image:", err);
+        // Fallback method if the first approach fails
+        try {
+          // Take a screenshot of just the visible area
+          const html2canvas = await import("html-to-image").then(
+            (module) => module.toPng
+          );
+          const dataUrl = await html2canvas(graphRef.current, {
+            cacheBust: true,
+            pixelRatio: 2,
+            skipFonts: true,
+            fontEmbedCSS: "",
+            imagePlaceholder:
+              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+          });
+
+          const link = document.createElement("a");
+          link.download = `${searchUsername}-x-contributions-${selectedYear}.png`;
+          link.href = dataUrl;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (fallbackErr) {
+          console.error("Fallback export also failed:", fallbackErr);
+          alert(
+            "Failed to save image. Please try taking a screenshot instead."
+          );
+        }
       }
+    } else {
+      console.error("Graph reference is null");
     }
   };
 
   const handleCopyImage = async () => {
     if (graphRef.current) {
       try {
-        const dataUrl = await toPng(graphRef.current, { cacheBust: true });
+        console.log("Copying image to clipboard...");
+        // Add a longer delay to ensure the graph is fully rendered
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Create a clone of the graph element to avoid font issues
+        const clone = graphRef.current.cloneNode(true) as HTMLElement;
+        document.body.appendChild(clone);
+
+        // Apply inline styles to the clone to ensure proper rendering
+        clone.style.position = "absolute";
+        clone.style.left = "-9999px";
+        clone.style.top = "-9999px";
+
+        // Apply the background color explicitly
+        const bgColor =
+          getComputedStyle(graphRef.current).backgroundColor || "#16161e";
+        clone.style.backgroundColor = bgColor;
+
+        // Ensure all text elements have their computed styles applied
+        const textElements = clone.querySelectorAll("div, span, p");
+        textElements.forEach((el) => {
+          const element = el as HTMLElement;
+          const computedStyle = window.getComputedStyle(element);
+          element.style.fontFamily = "Arial, sans-serif"; // Use web-safe font
+          element.style.color = computedStyle.color;
+          element.style.fontSize = computedStyle.fontSize;
+          element.style.fontWeight = computedStyle.fontWeight;
+        });
+
+        // Use toCanvas instead of toPng to avoid font issues
+        const canvas = await import("html-to-image").then((module) =>
+          module.toCanvas(clone, {
+            cacheBust: true,
+            pixelRatio: 2, // Higher quality
+            skipFonts: true, // Skip font detection which causes issues
+            backgroundColor: bgColor,
+          })
+        );
+
+        // Convert canvas to PNG
+        const dataUrl = canvas.toDataURL("image/png");
+
+        // Clean up the clone
+        document.body.removeChild(clone);
+
+        // Convert to blob and copy to clipboard
         const blob = await fetch(dataUrl).then((res) => res.blob());
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            [blob.type]: blob,
-          }),
-        ]);
+
+        try {
+          // Modern clipboard API
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              [blob.type]: blob,
+            }),
+          ]);
+          console.log("Image copied to clipboard successfully");
+        } catch (clipboardErr) {
+          console.error("Clipboard API error:", clipboardErr);
+          // Fallback - create a temporary link for manual copying
+          alert(
+            "Your browser doesn't support automatic image copying. The image will open in a new tab - right-click and select 'Copy Image' or 'Save Image As'."
+          );
+
+          // Open the image in a new tab for manual copying
+          const newTab = window.open();
+          if (newTab) {
+            newTab.document.write(
+              `<img src="${dataUrl}" alt="Twitter Contribution Graph" style="max-width: 100%;">`
+            );
+            newTab.document.title = `${searchUsername}'s Twitter Contributions`;
+            newTab.document.close();
+          } else {
+            throw new Error("Couldn't open new tab for image");
+          }
+        }
       } catch (err) {
         console.error("Error copying image:", err);
+        // Fallback method if the first approach fails
+        try {
+          // Take a screenshot of just the visible area with simpler options
+          const html2canvas = await import("html-to-image").then(
+            (module) => module.toPng
+          );
+          const dataUrl = await html2canvas(graphRef.current, {
+            cacheBust: true,
+            pixelRatio: 2,
+            skipFonts: true,
+            fontEmbedCSS: "",
+            imagePlaceholder:
+              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+          });
+
+          alert(
+            "Your browser doesn't support automatic image copying. The image will open in a new tab - right-click and select 'Copy Image' or 'Save Image As'."
+          );
+
+          // Open the image in a new tab for manual copying
+          const newTab = window.open();
+          if (newTab) {
+            newTab.document.write(
+              `<img src="${dataUrl}" alt="Twitter Contribution Graph" style="max-width: 100%;">`
+            );
+            newTab.document.title = `${searchUsername}'s Twitter Contributions`;
+            newTab.document.close();
+          } else {
+            throw new Error("Couldn't open new tab for image");
+          }
+        } catch (fallbackErr) {
+          console.error("Fallback copy also failed:", fallbackErr);
+          alert(
+            "Failed to copy image. Please try taking a screenshot instead."
+          );
+        }
       }
+    } else {
+      console.error("Graph reference is null");
     }
   };
 
@@ -682,11 +819,12 @@ export const TwitterFeed = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-indigo-500/20 hover:border-indigo-500/50"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-indigo-500/20 hover:border-indigo-500/50 relative"
                     onClick={handleExportImage}
                   >
                     <Download className="h-4 w-4" />
                     <span>Save</span>
+                    <span className="absolute inset-0 bg-indigo-500/10 opacity-0 hover:opacity-100 transition-opacity rounded-lg"></span>
                   </Button>
                 </motion.div>
 
@@ -698,11 +836,12 @@ export const TwitterFeed = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white hover:bg-blue-500/20 hover:border-blue-500/50 relative"
                     onClick={handleCopyImage}
                   >
                     <Camera className="h-4 w-4" />
                     <span>Copy</span>
+                    <span className="absolute inset-0 bg-blue-500/10 opacity-0 hover:opacity-100 transition-opacity rounded-lg"></span>
                   </Button>
                 </motion.div>
               </div>
@@ -715,17 +854,15 @@ export const TwitterFeed = ({
               transition={{ delay: 0.2 }}
               ref={graphRef}
               className={cn(
-                "rounded-lg border border-white/10 p-6 overflow-auto",
+                "rounded-lg border border-white/10 p-6 pb-8 overflow-auto relative",
                 selectedTheme.background,
                 selectedTheme.text
               )}
+              id="contribution-graph"
             >
               {/* Month labels with improved positioning */}
-              <div className="relative mb-8 pl-12">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-b border-white/5"></div>
-                </div>
-                <div className="relative flex justify-between">
+              <div className="relative mb-4 pl-8">
+                <div className="relative flex">
                   {(
                     data as TwitterStatsResponse
                   ).contributionGraph?.monthRanges?.map(
@@ -746,12 +883,11 @@ export const TwitterFeed = ({
                       return (
                         <div
                           key={i}
-                          className="text-xs font-medium opacity-70"
+                          className="text-xs font-medium opacity-70 absolute"
                           style={{
+                            left: `${startPercent}%`,
                             width: `${width}%`,
-                            marginLeft: i === 0 ? `${startPercent}%` : 0,
-                            textAlign: width < 10 ? "center" : "start",
-                            paddingLeft: width < 10 ? 0 : "8px",
+                            textAlign: "center",
                           }}
                         >
                           {months[range.month]}
@@ -762,9 +898,9 @@ export const TwitterFeed = ({
                 </div>
               </div>
 
-              <div className="flex">
+              <div className="flex mt-2">
                 {/* Day of week labels - left side */}
-                <div className="mr-4 space-y-6">
+                <div className="mr-4 space-y-8 mt-2">
                   {daysOfWeek.map(
                     (day, i) =>
                       i % 2 === 0 && (
@@ -779,7 +915,7 @@ export const TwitterFeed = ({
                 </div>
 
                 {/* Contribution cells grid with animation */}
-                <div className="grid grid-rows-7 grid-flow-col gap-1">
+                <div className="grid grid-rows-7 grid-flow-col gap-[8px] mt-2">
                   {(data as TwitterStatsResponse).contributionGraph?.graph
                     .flat()
                     .map(
@@ -808,7 +944,9 @@ export const TwitterFeed = ({
                                   },
                                 }}
                                 whileHover={{ scale: 1.3, zIndex: 10 }}
-                                className="h-3.5 w-3.5 rounded-sm transition-colors duration-200"
+                                className={`h-[18px] w-[18px] rounded-sm transition-colors duration-200 ${
+                                  day.count === 0 ? "border border-white/5" : ""
+                                }`}
                                 style={{
                                   backgroundColor: getActivityColor(
                                     day.count,
@@ -829,6 +967,7 @@ export const TwitterFeed = ({
 
               <div className="mt-6 flex items-center justify-end gap-2">
                 <span className="text-xs font-medium opacity-70">Less</span>
+                <div className="h-[12px] w-[12px] rounded-sm border border-white/10"></div>
                 {selectedTheme.colors.map((color, i) => (
                   <div
                     key={i}
