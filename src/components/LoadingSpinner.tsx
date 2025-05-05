@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 
 // Collection of Twitter facts
@@ -49,10 +49,13 @@ interface LoadingSpinnerProps {
   message?: string;
 }
 
-export function LoadingSpinner({ message = "Loading tweets" }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+  message = "Loading tweets",
+}: LoadingSpinnerProps) {
   const [currentFactIndex, setCurrentFactIndex] = useState(0);
-  const [currentFactType, setCurrentFactType] = useState<'twitter' | 'programming' | 'advisory'>('twitter');
-  const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
+  const [currentFactType, setCurrentFactType] = useState<
+    "twitter" | "programming" | "advisory"
+  >("twitter");
 
   // Combine all facts and notes
   const allFacts = {
@@ -61,60 +64,56 @@ export function LoadingSpinner({ message = "Loading tweets" }: LoadingSpinnerPro
     advisory: advisoryNotes,
   };
 
-  // Rotate through facts every 5 seconds
+  // Simplified fact rotation - just change every 4 seconds without fade effects
   useEffect(() => {
-    const fadeInterval = setInterval(() => {
-      setFadeState('out');
-    }, 4500);
-
+    // Use a single interval for simplicity
     const factInterval = setInterval(() => {
       // Update the fact index
       setCurrentFactIndex((prevIndex) => {
         const facts = allFacts[currentFactType];
-        return (prevIndex + 1) % facts.length;
+        const newIndex = (prevIndex + 1) % facts.length;
+
+        // Every 3 facts, change the fact type
+        if (newIndex % 3 === 0 && newIndex !== 0) {
+          setCurrentFactType((prevType) => {
+            if (prevType === "twitter") return "programming";
+            if (prevType === "programming") return "advisory";
+            return "twitter";
+          });
+        }
+
+        return newIndex;
       });
-
-      // Every 3 facts, change the fact type
-      if ((currentFactIndex + 1) % 3 === 0) {
-        setCurrentFactType((prevType) => {
-          if (prevType === 'twitter') return 'programming';
-          if (prevType === 'programming') return 'advisory';
-          return 'twitter';
-        });
-      }
-
-      setFadeState('in');
-    }, 5000);
+    }, 4000); // Slightly faster rotation
 
     return () => {
-      clearInterval(fadeInterval);
       clearInterval(factInterval);
     };
-  }, [currentFactIndex, currentFactType]);
+  }, []); // Remove dependencies to prevent unnecessary re-renders
 
   // Get the current fact based on type and index
   const getCurrentFact = () => {
-    return allFacts[currentFactType][currentFactIndex];
+    return allFacts[currentFactType][
+      currentFactIndex % allFacts[currentFactType].length
+    ];
   };
 
   // Get the title based on current fact type
   const getFactTitle = () => {
-    if (currentFactType === 'twitter') return "Twitter Fact";
-    if (currentFactType === 'programming') return "Programming Fact";
+    if (currentFactType === "twitter") return "Twitter Fact";
+    if (currentFactType === "programming") return "Programming Fact";
     return "Good to Know";
   };
 
   return (
     <div className="flex flex-col items-center justify-center p-8 space-y-8">
-      {/* Spinning loader */}
+      {/* Spinning loader - simplified animation */}
       <motion.div
-        animate={{ 
-          rotate: 360,
-          transition: { 
-            duration: 1.5, 
-            repeat: Infinity, 
-            ease: "linear" 
-          }
+        animate={{ rotate: 360 }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          ease: "linear",
         }}
         className="relative"
       >
@@ -130,26 +129,20 @@ export function LoadingSpinner({ message = "Loading tweets" }: LoadingSpinnerPro
         <p className="text-sm text-gray-400">This may take a moment</p>
       </div>
 
-      {/* Facts and notes with fade transition */}
+      {/* Facts and notes with simpler transition */}
       <div className="max-w-md bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-6 shadow-xl">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${currentFactType}-${currentFactIndex}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ 
-              opacity: fadeState === 'in' ? 1 : 0.3, 
-              y: fadeState === 'in' ? 0 : 5 
-            }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
-          >
-            <div className="inline-block px-3 py-1 mb-3 text-xs font-medium rounded-full bg-indigo-500/20 text-indigo-300">
-              {getFactTitle()}
-            </div>
-            <p className="text-gray-300">{getCurrentFact()}</p>
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={`${currentFactType}-${currentFactIndex}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="text-center"
+        >
+          <div className="inline-block px-3 py-1 mb-3 text-xs font-medium rounded-full bg-indigo-500/20 text-indigo-300">
+            {getFactTitle()}
+          </div>
+          <p className="text-gray-300">{getCurrentFact()}</p>
+        </motion.div>
       </div>
     </div>
   );

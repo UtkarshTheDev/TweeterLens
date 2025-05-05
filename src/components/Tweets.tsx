@@ -1,6 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import {
   Search,
@@ -238,9 +237,10 @@ interface TwitterStatsResponse {
 }
 
 const fetchUserStats = async (username: string, apiKey: string) => {
-  // Use cached data when available (no refresh parameter)
+  // Add a timestamp to prevent browser caching
+  const timestamp = new Date().getTime();
   const res = await fetch(
-    `/api/twitter/stats?username=${username}&apiKey=${apiKey}`
+    `/api/twitter/stats?username=${username}&apiKey=${apiKey}&_t=${timestamp}`
   );
   if (!res.ok) {
     throw new Error("Failed to fetch user stats");
@@ -416,30 +416,45 @@ export const TwitterFeed = ({
     "Dec",
   ];
 
-  // Only enable the query when both username and apiKey are available
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["twitterStats", searchUsername, apiKey],
-    queryFn: () =>
-      fetchUserStats(searchUsername, apiKey) as Promise<TwitterStatsResponse>,
-    enabled: !!searchUsername && !!apiKey,
-    staleTime: 1000 * 60 * 5, // 5 minutes - use cached data for 5 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
-    refetchOnMount: false, // Don't refetch when component mounts to use cached data
-  });
+  // Implement a manual loading state instead of relying on React Query
+  const [manualLoading, setManualLoading] = useState(false);
+  const [data, setData] = useState<TwitterStatsResponse | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Only refetch when username changes (not on every mount)
+  // Function to manually fetch data
+  const fetchData = useCallback(async () => {
+    if (!searchUsername || !apiKey) return;
+
+    try {
+      setManualLoading(true);
+      setError(null);
+
+      console.log(`Manually fetching data for ${searchUsername}...`);
+      const result = await fetchUserStats(searchUsername, apiKey);
+
+      // Small delay to ensure UI updates properly
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      setData(result as TwitterStatsResponse);
+      setManualLoading(false);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(err as Error);
+      setManualLoading(false);
+    }
+  }, [searchUsername, apiKey]);
+
+  // Fetch data when username or apiKey changes
   useEffect(() => {
     if (searchUsername && apiKey) {
-      console.log(`Username changed to ${searchUsername}, fetching data`);
-      refetch();
+      fetchData();
     }
-  }, [searchUsername, apiKey, refetch]);
+  }, [searchUsername, apiKey, fetchData]);
 
   useEffect(() => {
-    if (data?.userJoinYear) {
-      setAvailableYears(
-        generateYearOptions((data as TwitterStatsResponse).userJoinYear)
-      );
+    // Check if data is TwitterStatsResponse by checking for userJoinYear property
+    if (data && "userJoinYear" in data) {
+      setAvailableYears(generateYearOptions(data.userJoinYear));
     }
   }, [data]);
 
@@ -493,9 +508,9 @@ export const TwitterFeed = ({
                         ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
                         : "bg-gray-700 text-gray-300"
                     } font-medium px-6 py-2 shadow-xl hover:shadow-purple-500/25`}
-                    disabled={isLoading || !apiKey}
+                    disabled={manualLoading || !apiKey}
                   >
-                    {isLoading ? (
+                    {manualLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                         <span>Loading...</span>
@@ -535,8 +550,8 @@ export const TwitterFeed = ({
           </motion.div>
         )}
 
-        {/* Enhanced loading state with spinner and facts - only show when no data is available yet */}
-        {isLoading && !data && (
+        {/* Enhanced loading state with spinner and facts */}
+        {manualLoading && searchUsername && (
           <div className="w-full">
             <LoadingSpinner
               message={`Fetching tweets for @${searchUsername}`}
@@ -547,8 +562,8 @@ export const TwitterFeed = ({
         {/* Replace error display with the ErrorState component */}
         {error && <ErrorState error={error} />}
 
-        {/* Enhanced data display - show when data is available, even if refreshing in background */}
-        {data && (
+        {/* Enhanced data display - only show when data is available and not loading */}
+        {data && !manualLoading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1127,38 +1142,37 @@ export const TwitterFeed = ({
                           .peakHour
                       }
                     </p>
-                    <div className="mt-3 h-24 flex items-end gap-1">
-                      {(
-                        data as TwitterStatsResponse
-                      ).postingTimeAnalysis.hourlyDistribution
-                        .filter((_, i) => i % 2 === 0) // Show every other hour to save space
-                        .map((hour, i) => (
-                          <div
-                            key={i}
-                            className="flex flex-col items-center flex-1"
-                          >
-                            <div
-                              className="w-full bg-blue-500/30 rounded-t"
-                              style={{
-                                height: `${Math.max(
-                                  5,
-                                  (hour.count /
-                                    Math.max(
-                                      ...(
-                                        data as TwitterStatsResponse
-                                      ).postingTimeAnalysis.hourlyDistribution.map(
-                                        (h) => h.count
-                                      )
-                                    )) *
-                                    100
-                                )}%`,
-                              }}
-                            ></div>
-                            <span className="text-xs text-gray-500 mt-1">
-                              {hour.formattedHour}
-                            </span>
-                          </div>
-                        ))}
+                    {/* Fixed-height bars for posting time distribution */}
+                    <div className="mt-4">
+                      <div className="grid grid-cols-4 gap-3">
+                        {[0, 6, 12, 18].map((hourIndex) => {
+                          // Get the hour data
+                          const hour = (data as TwitterStatsResponse)
+                            .postingTimeAnalysis.hourlyDistribution[hourIndex];
+
+                          return (
+                            <div key={hourIndex} className="text-center">
+                              <div
+                                className="h-16 w-full rounded-md mx-auto flex items-center justify-center"
+                                style={{
+                                  backgroundColor:
+                                    hour.count > 0
+                                      ? "rgba(59, 130, 246, 0.3)"
+                                      : "rgba(30, 41, 59, 0.4)",
+                                  border: "1px solid rgba(59, 130, 246, 0.3)",
+                                }}
+                              >
+                                <span className="text-sm font-medium text-white">
+                                  {hour.count}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-400 mt-2 block">
+                                {hour.formattedHour}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
 
@@ -1344,7 +1358,7 @@ export const TwitterFeed = ({
                   limitations, some tweets or engagement metrics might be
                   missing.
                 </p>
-                {data && "totalPosts" in data && (
+                {data && typeof data === "object" && "totalPosts" in data && (
                   <p className="text-xs text-gray-500 mt-1">
                     Analysis based on{" "}
                     {(data as TwitterStatsResponse).totalPosts} tweets.
