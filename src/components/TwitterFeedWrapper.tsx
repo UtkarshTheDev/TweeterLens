@@ -2,19 +2,40 @@
 import { useState, useEffect } from "react";
 import { TwitterFeed } from "@/components/Tweets";
 import { TwitterFeedSkeleton } from "@/components/SkeletonLoaders";
+import { useSearch } from "@/context/SearchContext";
 
 export function TwitterFeedWrapper() {
-  const [searchUsername, setSearchUsername] = useState("");
+  const { globalUsername } = useSearch();
   const [isClient, setIsClient] = useState(false);
+
+  // Initialize searchUsername from URL if available (for SSR/hydration)
+  const initialUsername =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("username") || ""
+      : "";
+
+  // Use state to track the effective username (from URL or global state)
+  const [searchUsername, setSearchUsername] = useState(initialUsername);
+
+  // This effect will run when globalUsername changes
+  useEffect(() => {
+    if (globalUsername) {
+      console.log(
+        `TwitterFeedWrapper: Global username changed to ${globalUsername}`
+      );
+      setSearchUsername(globalUsername);
+    }
+  }, [globalUsername]);
 
   // This effect will only run on the client
   useEffect(() => {
     setIsClient(true);
 
-    // Check if there's a username in the URL
+    // Check if there's a username in the URL (for client-side navigation)
     const params = new URLSearchParams(window.location.search);
     const username = params.get("username");
-    if (username) {
+    if (username && !searchUsername) {
+      console.log(`Setting username from URL: ${username}`);
       setSearchUsername(username);
     }
   }, []);

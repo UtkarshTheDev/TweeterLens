@@ -261,28 +261,35 @@ export const TwitterFeed = ({
   ]);
   const graphRef = useRef<HTMLDivElement>(null);
 
-  // Use effect to initialize search when initialUsername changes
+  // Load API key from localStorage on component mount and initialize search
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("socialdataApiKey");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+
+      // If we have an initialUsername, trigger the search immediately
+      if (initialUsername && initialUsername.trim()) {
+        console.log(`Initializing search for ${initialUsername} with API key`);
+        setUsername(initialUsername);
+        setSearchUsername(initialUsername);
+      }
+    }
+  }, []); // Only run once on mount
+
+  // Use effect to handle initialUsername changes after mount
   useEffect(() => {
     if (initialUsername && initialUsername !== searchUsername) {
+      console.log(
+        `initialUsername changed to ${initialUsername}, updating search`
+      );
       setUsername(initialUsername);
-      // If we have an API key, trigger the search
+
+      // If we have an API key, trigger the search immediately
       if (apiKey) {
         setSearchUsername(initialUsername);
       }
     }
   }, [initialUsername, apiKey, searchUsername]);
-
-  // Load API key from localStorage on component mount
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem("socialdataApiKey");
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      // If we have an initialUsername, trigger the search
-      if (initialUsername && initialUsername.trim()) {
-        setSearchUsername(initialUsername);
-      }
-    }
-  }, [initialUsername]);
 
   // const handleApiKeySaved = (key: string) => {
   //   setApiKey(key);

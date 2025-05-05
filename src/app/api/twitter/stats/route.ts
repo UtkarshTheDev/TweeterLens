@@ -4,6 +4,8 @@ import {
   fetchTweetsFromUser,
   fetchTwitterProfile,
   PartialTweet,
+  CACHE_TTL,
+  writeToCache,
 } from "@/lib/twitter-utils";
 
 // Generate contribution graph for a specific year
@@ -560,9 +562,13 @@ export async function GET(req: Request) {
       ...userStats,
     };
 
-    // Cache the stats for 5 minutes (300 seconds)
-    await redis.setex(statsCacheKey, 300, result);
-    console.log(`Cached stats for ${username} for ${year}`);
+    // Cache the stats using our CACHE_TTL.STATS constant (8 hours)
+    await writeToCache(statsCacheKey, result, CACHE_TTL.STATS);
+    console.log(
+      `Cached stats for ${username} for ${year} with ${
+        CACHE_TTL.STATS / 3600
+      }-hour TTL`
+    );
 
     return NextResponse.json(result);
   } catch (error: unknown) {

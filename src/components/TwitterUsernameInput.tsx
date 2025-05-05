@@ -33,12 +33,17 @@ export function TwitterUsernameInput({
 
   const handleSearch = () => {
     if (username.trim() && apiKey) {
-      onSearch(username);
-      // Scroll to search section
-      const searchSection = document.getElementById("search");
-      if (searchSection) {
-        searchSection.scrollIntoView({ behavior: "smooth" });
-      }
+      // Prevent empty searches
+      const trimmedUsername = username.trim();
+
+      // Call the onSearch callback with the trimmed username
+      onSearch(trimmedUsername);
+
+      // Clear any previous error state (if you have any)
+      // setError("");
+
+      // Optionally, you can add a visual feedback that the search is being processed
+      console.log(`Searching for Twitter user: ${trimmedUsername}`);
     }
   };
 

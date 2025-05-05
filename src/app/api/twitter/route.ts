@@ -6,6 +6,8 @@ import {
   getAvailableYearsFromCache,
   TwitterUser,
   PartialTweet,
+  CACHE_TTL,
+  writeToCache,
 } from "@/lib/twitter-utils";
 import { NextResponse } from "next/server";
 

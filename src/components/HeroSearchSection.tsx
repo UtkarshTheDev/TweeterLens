@@ -3,8 +3,10 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { TwitterUsernameInput } from "@/components/TwitterUsernameInput";
 import { ApiKeyConfig } from "@/components/ApiKeyConfig";
+import { useSearch } from "@/context/SearchContext";
 
 export function HeroSearchSection() {
+  const { setGlobalUsername } = useSearch();
   const [hasApiKey, setHasApiKey] = useState(false);
   const [showApiKeyConfig, setShowApiKeyConfig] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -54,6 +56,10 @@ export function HeroSearchSection() {
     const url = new URL(currentUrl);
     url.searchParams.set("username", username);
     window.history.pushState({}, "", url);
+
+    // Update the global username state
+    console.log(`Setting global username to: ${username}`);
+    setGlobalUsername(username);
 
     // Scroll to search section
     const searchSection = document.getElementById("search");
