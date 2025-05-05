@@ -444,6 +444,377 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
       return dateA.getTime() - dateB.getTime();
     });
 
+  // 1. Find the most viral tweet
+  let viralTweet = null;
+  if (yearTweets.length > 0) {
+    const mostViralTweet = yearTweets.reduce((mostViral, tweet) => {
+      const currentEngagement =
+        (tweet.favorite_count || 0) + (tweet.retweet_count || 0);
+      const previousEngagement =
+        (mostViral.favorite_count || 0) + (mostViral.retweet_count || 0);
+      return currentEngagement > previousEngagement ? tweet : mostViral;
+    }, yearTweets[0]);
+
+    // Format for display
+    const viralEngagement =
+      (mostViralTweet.favorite_count || 0) +
+      (mostViralTweet.retweet_count || 0);
+    const avgEngagement =
+      totalPosts > 0 ? (totalLikes + totalRetweets) / totalPosts : 0;
+
+    viralTweet = {
+      text: mostViralTweet.full_text || mostViralTweet.text || "",
+      date: new Date(
+        mostViralTweet.tweet_created_at || mostViralTweet.created_at
+      ).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+      likes: mostViralTweet.favorite_count || 0,
+      retweets: mostViralTweet.retweet_count || 0,
+      engagement: viralEngagement,
+      engagementRatio:
+        avgEngagement > 0
+          ? parseFloat((viralEngagement / avgEngagement).toFixed(1))
+          : 0,
+    };
+  }
+
+  // 2. Analyze posting times
+  const hourCounts = Array(24).fill(0);
+  yearTweets.forEach((tweet) => {
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+    const hour = tweetDate.getHours();
+    hourCounts[hour]++;
+  });
+
+  // Find peak posting hour
+  const peakHourIndex = hourCounts.indexOf(Math.max(...hourCounts));
+  const formattedPeakHour = new Date(
+    2023,
+    0,
+    1,
+    peakHourIndex
+  ).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    hour12: true,
+  });
+
+  const hourlyDistribution = hourCounts.map((count, hour) => ({
+    hour,
+    count,
+    percentage:
+      totalPosts > 0 ? ((count / totalPosts) * 100).toFixed(1) + "%" : "0%",
+    formattedHour: new Date(2023, 0, 1, hour).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      hour12: true,
+    }),
+  }));
+
+  // 3. Analyze tweet sources
+  const sourceCounts: Record<string, number> = {};
+  yearTweets.forEach((tweet) => {
+    if (tweet.source) {
+      // Extract app name from source HTML
+      let sourceName = tweet.source;
+      try {
+        const match = sourceName.match(/>([^<]+)</);
+        sourceName = match ? match[1] : "Twitter";
+      } catch (error) {
+        sourceName = "Twitter";
+      }
+
+      sourceCounts[sourceName] = (sourceCounts[sourceName] || 0) + 1;
+    }
+  });
+
+  // Convert to array and sort
+  const tweetSources = Object.entries(sourceCounts)
+    .map(([source, count]) => ({
+      source,
+      count,
+      percentage:
+        totalPosts > 0 ? ((count / totalPosts) * 100).toFixed(1) + "%" : "0%",
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // 4. Analyze tweet lengths
+  const lengthCategories = {
+    short: { min: 0, max: 50, count: 0, engagement: 0 },
+    medium: { min: 51, max: 150, count: 0, engagement: 0 },
+    long: { min: 151, max: 280, count: 0, engagement: 0 },
+  };
+
+  yearTweets.forEach((tweet) => {
+    const text = tweet.full_text || tweet.text || "";
+    const length = text.length;
+    const engagement = (tweet.favorite_count || 0) + (tweet.retweet_count || 0);
+
+    if (length <= lengthCategories.short.max) {
+      lengthCategories.short.count++;
+      lengthCategories.short.engagement += engagement;
+    } else if (length <= lengthCategories.medium.max) {
+      lengthCategories.medium.count++;
+      lengthCategories.medium.engagement += engagement;
+    } else {
+      lengthCategories.long.count++;
+      lengthCategories.long.engagement += engagement;
+    }
+  });
+
+  // Calculate average engagement per category
+  Object.keys(lengthCategories).forEach((key) => {
+    const category = lengthCategories[key as keyof typeof lengthCategories];
+    category.engagement =
+      category.count > 0
+        ? parseFloat((category.engagement / category.count).toFixed(1))
+        : 0;
+  });
+
+  // Determine optimal tweet length
+  const optimalLengthCategory = Object.entries(lengthCategories).sort(
+    (a, b) => b[1].engagement - a[1].engagement
+  )[0][0];
+
+  // 5. Analyze media impact
+  const mediaStats = {
+    withMedia: { count: 0, likes: 0, retweets: 0 },
+    textOnly: { count: 0, likes: 0, retweets: 0 },
+  };
+
+  yearTweets.forEach((tweet) => {
+    const hasMedia = tweet.entities?.urls?.some(
+      (url) =>
+        url.expanded_url?.includes("photo") ||
+        url.expanded_url?.includes("video")
+    );
+
+    if (hasMedia) {
+      mediaStats.withMedia.count++;
+      mediaStats.withMedia.likes += tweet.favorite_count || 0;
+      mediaStats.withMedia.retweets += tweet.retweet_count || 0;
+    } else {
+      mediaStats.textOnly.count++;
+      mediaStats.textOnly.likes += tweet.favorite_count || 0;
+      mediaStats.textOnly.retweets += tweet.retweet_count || 0;
+    }
+  });
+
+  // Calculate media impact metrics
+  const mediaImpact = {
+    withMedia: {
+      count: mediaStats.withMedia.count,
+      percentage:
+        totalPosts > 0
+          ? ((mediaStats.withMedia.count / totalPosts) * 100).toFixed(1) + "%"
+          : "0%",
+      avgLikes:
+        mediaStats.withMedia.count > 0
+          ? parseFloat(
+              (mediaStats.withMedia.likes / mediaStats.withMedia.count).toFixed(
+                1
+              )
+            )
+          : 0,
+      avgRetweets:
+        mediaStats.withMedia.count > 0
+          ? parseFloat(
+              (
+                mediaStats.withMedia.retweets / mediaStats.withMedia.count
+              ).toFixed(1)
+            )
+          : 0,
+    },
+    textOnly: {
+      count: mediaStats.textOnly.count,
+      percentage:
+        totalPosts > 0
+          ? ((mediaStats.textOnly.count / totalPosts) * 100).toFixed(1) + "%"
+          : "0%",
+      avgLikes:
+        mediaStats.textOnly.count > 0
+          ? parseFloat(
+              (mediaStats.textOnly.likes / mediaStats.textOnly.count).toFixed(1)
+            )
+          : 0,
+      avgRetweets:
+        mediaStats.textOnly.count > 0
+          ? parseFloat(
+              (
+                mediaStats.textOnly.retweets / mediaStats.textOnly.count
+              ).toFixed(1)
+            )
+          : 0,
+    },
+    engagementBoost: {
+      likes:
+        mediaStats.textOnly.count > 0 && mediaStats.withMedia.count > 0
+          ? parseFloat(
+              (
+                mediaStats.withMedia.likes /
+                mediaStats.withMedia.count /
+                (mediaStats.textOnly.likes / mediaStats.textOnly.count)
+              ).toFixed(1)
+            )
+          : 0,
+      retweets:
+        mediaStats.textOnly.count > 0 && mediaStats.withMedia.count > 0
+          ? parseFloat(
+              (
+                mediaStats.withMedia.retweets /
+                mediaStats.withMedia.count /
+                (mediaStats.textOnly.retweets / mediaStats.textOnly.count)
+              ).toFixed(1)
+            )
+          : 0,
+    },
+  };
+
+  // 6. Calculate consistency score
+  const daysWithTweets = Object.keys(tweetsByDate).length;
+  const consistencyScore = parseFloat(
+    ((daysWithTweets / daysInYear) * 100).toFixed(1)
+  );
+
+  // Calculate posting pattern regularity
+  let regularityScore = 0;
+  const dateKeys = Object.keys(tweetsByDate)
+    .map((date) => new Date(date).getTime())
+    .sort();
+
+  if (dateKeys.length > 1) {
+    const timeDiffs = [];
+    for (let i = 1; i < dateKeys.length; i++) {
+      timeDiffs.push(dateKeys[i] - dateKeys[i - 1]);
+    }
+
+    // Standard deviation of time differences (lower = more regular)
+    const avgTimeDiff =
+      timeDiffs.reduce((sum, diff) => sum + diff, 0) / timeDiffs.length;
+    const stdDevTimeDiff = Math.sqrt(
+      timeDiffs.reduce(
+        (sum, diff) => sum + Math.pow(diff - avgTimeDiff, 2),
+        0
+      ) / timeDiffs.length
+    );
+
+    // Normalize to a 0-100 score (higher = more consistent)
+    regularityScore = Math.max(
+      0,
+      Math.min(100, 100 - stdDevTimeDiff / (24 * 60 * 60 * 1000))
+    );
+
+    // Cap at 100
+    regularityScore = Math.min(100, parseFloat(regularityScore.toFixed(1)));
+  }
+
+  // 7. Calculate engagement efficiency
+  const totalEngagement = totalLikes + totalRetweets;
+  const engagementPerPost =
+    totalPosts > 0 ? parseFloat((totalEngagement / totalPosts).toFixed(1)) : 0;
+  const engagementPerDay = parseFloat(
+    (totalEngagement / daysInYear).toFixed(1)
+  );
+  const efficiencyScore =
+    averagePostsPerDay > 0
+      ? parseFloat((engagementPerDay / averagePostsPerDay).toFixed(1))
+      : 0;
+
+  // 8. Analyze replies and conversations
+  const replyCount = yearTweets.filter(
+    (tweet) => tweet.in_reply_to_status_id_str || tweet.in_reply_to_user_id_str
+  ).length;
+
+  const replyPercentage =
+    totalPosts > 0
+      ? parseFloat(((replyCount / totalPosts) * 100).toFixed(1))
+      : 0;
+
+  // Identify unique users replied to
+  const uniqueUsersRepliedTo = new Set(
+    yearTweets
+      .filter((tweet) => tweet.in_reply_to_screen_name)
+      .map((tweet) => tweet.in_reply_to_screen_name)
+  );
+
+  // 9. Analyze posting time effectiveness
+  const hourlyEngagement: Record<
+    number,
+    { count: number; engagement: number }
+  > = {};
+  for (let i = 0; i < 24; i++) {
+    hourlyEngagement[i] = { count: 0, engagement: 0 };
+  }
+
+  yearTweets.forEach((tweet) => {
+    const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+    const hour = tweetDate.getHours();
+    const engagement = (tweet.favorite_count || 0) + (tweet.retweet_count || 0);
+
+    hourlyEngagement[hour].count++;
+    hourlyEngagement[hour].engagement += engagement;
+  });
+
+  // Calculate average engagement per hour
+  const hourlyEngagementAvg = Object.entries(hourlyEngagement)
+    .map(([hour, data]) => ({
+      hour: parseInt(hour),
+      formattedHour: new Date(2023, 0, 1, parseInt(hour)).toLocaleTimeString(
+        "en-US",
+        {
+          hour: "numeric",
+          hour12: true,
+        }
+      ),
+      count: data.count,
+      avgEngagement:
+        data.count > 0
+          ? parseFloat((data.engagement / data.count).toFixed(1))
+          : 0,
+    }))
+    .sort((a, b) => b.avgEngagement - a.avgEngagement);
+
+  // Find optimal posting time (hour with highest engagement)
+  const optimalPostingTime =
+    hourlyEngagementAvg.length > 0
+      ? hourlyEngagementAvg[0]
+      : {
+          hour: 0,
+          formattedHour: "12 AM",
+          avgEngagement: 0,
+        };
+
+  // 10. Determine Twitter personality type
+  let personalityType = "";
+  let personalityDescription = "";
+
+  if (replyPercentage > 50) {
+    personalityType = "Conversationalist";
+    personalityDescription =
+      "You love engaging in conversations and building connections on Twitter.";
+  } else if (consistencyScore > 70) {
+    personalityType = "Consistent Creator";
+    personalityDescription =
+      "You're a reliable presence, consistently sharing content with your audience.";
+  } else if (mediaStats.withMedia.count > mediaStats.textOnly.count) {
+    personalityType = "Visual Storyteller";
+    personalityDescription =
+      "You prefer to communicate through rich media, sharing visual stories with your audience.";
+  } else if (bestStreak > 14) {
+    personalityType = "Dedicated Tweeter";
+    personalityDescription =
+      "You're committed to your Twitter presence, maintaining impressive posting streaks.";
+  } else if (efficiencyScore > 5) {
+    personalityType = "Engagement Optimizer";
+    personalityDescription =
+      "You generate high engagement with relatively few tweets - quality over quantity.";
+  } else {
+    personalityType = "Casual Contributor";
+    personalityDescription =
+      "You use Twitter on your own terms, sharing thoughts when inspiration strikes.";
+  }
+
   return {
     totalPosts,
     bestStreak,
@@ -457,6 +828,41 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
     mostActiveMonth,
     topHashtags,
     engagementTrends,
+    // New stats
+    viralTweet,
+    postingTimeAnalysis: {
+      peakHour: formattedPeakHour,
+      hourlyDistribution,
+    },
+    tweetSources,
+    tweetLengthAnalysis: {
+      ...lengthCategories,
+      optimalLengthCategory,
+    },
+    mediaImpact,
+    consistencyMetrics: {
+      daysWithTweets,
+      consistencyScore,
+      regularityScore,
+    },
+    engagementEfficiency: {
+      engagementPerPost,
+      engagementPerDay,
+      efficiencyScore,
+    },
+    conversationMetrics: {
+      replyCount,
+      replyPercentage,
+      uniqueConversations: uniqueUsersRepliedTo.size,
+    },
+    tweetTimingEffectiveness: {
+      optimalPostingTime,
+      hourlyEngagementData: hourlyEngagementAvg,
+    },
+    twitterPersonality: {
+      type: personalityType,
+      description: personalityDescription,
+    },
   };
 }
 
@@ -502,6 +908,85 @@ interface TwitterStatsResponse {
     retweets: number;
     engagement: number;
   }>;
+  // New stats
+  viralTweet: {
+    text: string;
+    date: string;
+    likes: number;
+    retweets: number;
+    engagement: number;
+    engagementRatio: number;
+  } | null;
+  postingTimeAnalysis: {
+    peakHour: string;
+    hourlyDistribution: Array<{
+      hour: number;
+      count: number;
+      percentage: string;
+      formattedHour: string;
+    }>;
+  };
+  tweetSources: Array<{
+    source: string;
+    count: number;
+    percentage: string;
+  }>;
+  tweetLengthAnalysis: {
+    short: { min: number; max: number; count: number; engagement: number };
+    medium: { min: number; max: number; count: number; engagement: number };
+    long: { min: number; max: number; count: number; engagement: number };
+    optimalLengthCategory: string;
+  };
+  mediaImpact: {
+    withMedia: {
+      count: number;
+      percentage: string;
+      avgLikes: number;
+      avgRetweets: number;
+    };
+    textOnly: {
+      count: number;
+      percentage: string;
+      avgLikes: number;
+      avgRetweets: number;
+    };
+    engagementBoost: {
+      likes: number;
+      retweets: number;
+    };
+  };
+  consistencyMetrics: {
+    daysWithTweets: number;
+    consistencyScore: number;
+    regularityScore: number;
+  };
+  engagementEfficiency: {
+    engagementPerPost: number;
+    engagementPerDay: number;
+    efficiencyScore: number;
+  };
+  conversationMetrics: {
+    replyCount: number;
+    replyPercentage: number;
+    uniqueConversations: number;
+  };
+  tweetTimingEffectiveness: {
+    optimalPostingTime: {
+      hour: number;
+      formattedHour: string;
+      avgEngagement: number;
+    };
+    hourlyEngagementData: Array<{
+      hour: number;
+      formattedHour: string;
+      count: number;
+      avgEngagement: number;
+    }>;
+  };
+  twitterPersonality: {
+    type: string;
+    description: string;
+  };
 }
 
 export async function GET(req: Request) {
