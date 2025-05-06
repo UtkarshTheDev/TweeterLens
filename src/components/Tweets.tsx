@@ -320,217 +320,224 @@ export const TwitterFeed = ({
     }
   };
 
+  // State for notification messages
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+    visible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    visible: false,
+  });
+
+  // Show notification helper
+  const showNotification = (message: string, type: "success" | "error") => {
+    setNotification({ message, type, visible: true });
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      setNotification((prev) => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
   const handleExportImage = async () => {
-    if (graphRef.current) {
+    if (!graphRef.current) {
+      console.error("Graph reference is null");
+      showNotification("Cannot find the graph element to export", "error");
+      return;
+    }
+
+    try {
+      // Ensure the graph is fully rendered before capturing
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Get background color safely
+      const element = graphRef.current;
+      const bgColor = element
+        ? getComputedStyle(element).backgroundColor || "#16161e"
+        : "#16161e";
+
+      // Use toPng from html-to-image
+      const dataUrl = await import("html-to-image").then((module) =>
+        module.toPng(element, {
+          cacheBust: true,
+          pixelRatio: 2, // Higher quality
+          backgroundColor: bgColor,
+          style: {
+            // Ensure proper rendering of fonts
+            fontFamily: "Arial, sans-serif",
+          },
+        })
+      );
+
+      // Create and trigger download
+      const link = document.createElement("a");
+      link.download = `${searchUsername}-x-contributions-${selectedYear}.png`;
+      link.href = dataUrl;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showNotification("Image downloaded successfully!", "success");
+    } catch (err) {
+      console.error("Error exporting image:", err);
+
+      // Fallback method if the first approach fails
       try {
-        console.log("Exporting image...");
-        // Add a longer delay to ensure the graph is fully rendered
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        const element = graphRef.current;
+        if (!element) throw new Error("Graph element is null");
 
-        // Create a clone of the graph element to avoid font issues
-        const clone = graphRef.current.cloneNode(true) as HTMLElement;
-        document.body.appendChild(clone);
-
-        // Apply inline styles to the clone to ensure proper rendering
-        clone.style.position = "absolute";
-        clone.style.left = "-9999px";
-        clone.style.top = "-9999px";
-
-        // Apply the background color explicitly
-        const bgColor =
-          getComputedStyle(graphRef.current).backgroundColor || "#16161e";
-        clone.style.backgroundColor = bgColor;
-
-        // Ensure all text elements have their computed styles applied
-        const textElements = clone.querySelectorAll("div, span, p");
-        textElements.forEach((el) => {
-          const element = el as HTMLElement;
-          const computedStyle = window.getComputedStyle(element);
-          element.style.fontFamily = "Arial, sans-serif"; // Use web-safe font
-          element.style.color = computedStyle.color;
-          element.style.fontSize = computedStyle.fontSize;
-          element.style.fontWeight = computedStyle.fontWeight;
-        });
-
-        // Use toCanvas instead of toPng to avoid font issues
-        const canvas = await import("html-to-image").then((module) =>
-          module.toCanvas(clone, {
+        const dataUrl = await import("html-to-image").then((module) =>
+          module.toJpeg(element, {
             cacheBust: true,
-            pixelRatio: 2, // Higher quality
-            skipFonts: true, // Skip font detection which causes issues
-            backgroundColor: bgColor,
+            pixelRatio: 2,
+            quality: 0.95,
           })
         );
 
-        // Convert canvas to PNG
-        const dataUrl = canvas.toDataURL("image/png");
-
-        // Clean up the clone
-        document.body.removeChild(clone);
-
-        // Create and trigger download
         const link = document.createElement("a");
-        link.download = `${searchUsername}-x-contributions-${selectedYear}.png`;
+        link.download = `${searchUsername}-x-contributions-${selectedYear}.jpg`;
         link.href = dataUrl;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        console.log("Image exported successfully");
-      } catch (err) {
-        console.error("Error exporting image:", err);
-        // Fallback method if the first approach fails
-        try {
-          // Take a screenshot of just the visible area
-          const html2canvas = await import("html-to-image").then(
-            (module) => module.toPng
-          );
-          const dataUrl = await html2canvas(graphRef.current, {
-            cacheBust: true,
-            pixelRatio: 2,
-            skipFonts: true,
-            fontEmbedCSS: "",
-            imagePlaceholder:
-              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-          });
-
-          const link = document.createElement("a");
-          link.download = `${searchUsername}-x-contributions-${selectedYear}.png`;
-          link.href = dataUrl;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        } catch (fallbackErr) {
-          console.error("Fallback export also failed:", fallbackErr);
-          alert(
-            "Failed to save image. Please try taking a screenshot instead."
-          );
-        }
+        showNotification("Image downloaded as JPEG instead of PNG", "success");
+      } catch (fallbackErr) {
+        console.error("Fallback export also failed:", fallbackErr);
+        showNotification(
+          "Failed to save image. Try taking a screenshot instead.",
+          "error"
+        );
       }
-    } else {
-      console.error("Graph reference is null");
     }
   };
 
   const handleCopyImage = async () => {
-    if (graphRef.current) {
-      try {
-        console.log("Copying image to clipboard...");
-        // Add a longer delay to ensure the graph is fully rendered
-        await new Promise((resolve) => setTimeout(resolve, 500));
+    if (!graphRef.current) {
+      console.error("Graph reference is null");
+      showNotification("Cannot find the graph element to copy", "error");
+      return;
+    }
 
-        // Create a clone of the graph element to avoid font issues
-        const clone = graphRef.current.cloneNode(true) as HTMLElement;
-        document.body.appendChild(clone);
+    try {
+      // Ensure the graph is fully rendered before capturing
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // Apply inline styles to the clone to ensure proper rendering
-        clone.style.position = "absolute";
-        clone.style.left = "-9999px";
-        clone.style.top = "-9999px";
+      // Get element and background color safely
+      const element = graphRef.current;
+      const bgColor = element
+        ? getComputedStyle(element).backgroundColor || "#16161e"
+        : "#16161e";
 
-        // Apply the background color explicitly
-        const bgColor =
-          getComputedStyle(graphRef.current).backgroundColor || "#16161e";
-        clone.style.backgroundColor = bgColor;
-
-        // Ensure all text elements have their computed styles applied
-        const textElements = clone.querySelectorAll("div, span, p");
-        textElements.forEach((el) => {
-          const element = el as HTMLElement;
-          const computedStyle = window.getComputedStyle(element);
-          element.style.fontFamily = "Arial, sans-serif"; // Use web-safe font
-          element.style.color = computedStyle.color;
-          element.style.fontSize = computedStyle.fontSize;
-          element.style.fontWeight = computedStyle.fontWeight;
+      // Convert to blob for clipboard
+      const blob = await import("html-to-image").then(async (module) => {
+        const dataUrl = await module.toBlob(element, {
+          cacheBust: true,
+          pixelRatio: 2,
+          backgroundColor: bgColor,
         });
 
-        // Use toCanvas instead of toPng to avoid font issues
-        const canvas = await import("html-to-image").then((module) =>
-          module.toCanvas(clone, {
-            cacheBust: true,
-            pixelRatio: 2, // Higher quality
-            skipFonts: true, // Skip font detection which causes issues
-            backgroundColor: bgColor,
-          })
-        );
-
-        // Convert canvas to PNG
-        const dataUrl = canvas.toDataURL("image/png");
-
-        // Clean up the clone
-        document.body.removeChild(clone);
-
-        // Convert to blob and copy to clipboard
-        const blob = await fetch(dataUrl).then((res) => res.blob());
-
-        try {
-          // Modern clipboard API
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              [blob.type]: blob,
-            }),
-          ]);
-          console.log("Image copied to clipboard successfully");
-        } catch (clipboardErr) {
-          console.error("Clipboard API error:", clipboardErr);
-          // Fallback - create a temporary link for manual copying
-          alert(
-            "Your browser doesn't support automatic image copying. The image will open in a new tab - right-click and select 'Copy Image' or 'Save Image As'."
-          );
-
-          // Open the image in a new tab for manual copying
-          const newTab = window.open();
-          if (newTab) {
-            newTab.document.write(
-              `<img src="${dataUrl}" alt="Twitter Contribution Graph" style="max-width: 100%;">`
-            );
-            newTab.document.title = `${searchUsername}'s Twitter Contributions`;
-            newTab.document.close();
-          } else {
-            throw new Error("Couldn't open new tab for image");
-          }
+        if (!dataUrl) {
+          throw new Error("Failed to generate image blob");
         }
-      } catch (err) {
-        console.error("Error copying image:", err);
-        // Fallback method if the first approach fails
+
+        return dataUrl;
+      });
+
+      // Use modern Clipboard API
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob,
+        }),
+      ]);
+
+      showNotification("Image copied to clipboard!", "success");
+    } catch (err) {
+      console.error("Error copying image:", err);
+
+      // Check if it's a clipboard permission error
+      if (
+        err instanceof Error &&
+        (err.message.includes("permission") ||
+          err.message.includes("secure context") ||
+          err.message.includes("NotAllowedError"))
+      ) {
+        showNotification(
+          "Browser blocked clipboard access. Check permissions.",
+          "error"
+        );
+      } else {
+        // Try fallback to PNG data URL
         try {
-          // Take a screenshot of just the visible area with simpler options
-          const html2canvas = await import("html-to-image").then(
-            (module) => module.toPng
-          );
-          const dataUrl = await html2canvas(graphRef.current, {
-            cacheBust: true,
-            pixelRatio: 2,
-            skipFonts: true,
-            fontEmbedCSS: "",
-            imagePlaceholder:
-              "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-          });
+          const element = graphRef.current;
+          if (!element) throw new Error("Graph element is null");
 
-          alert(
-            "Your browser doesn't support automatic image copying. The image will open in a new tab - right-click and select 'Copy Image' or 'Save Image As'."
+          const dataUrl = await import("html-to-image").then((module) =>
+            module.toPng(element, {
+              cacheBust: true,
+              pixelRatio: 2,
+            })
           );
 
-          // Open the image in a new tab for manual copying
+          // Open in new tab as fallback
           const newTab = window.open();
           if (newTab) {
+            // Use document.open() and document.close() instead of document.write()
+            newTab.document.open();
             newTab.document.write(
-              `<img src="${dataUrl}" alt="Twitter Contribution Graph" style="max-width: 100%;">`
+              `<!DOCTYPE html>
+              <html>
+                <head>
+                  <title>${searchUsername}'s Twitter Contributions</title>
+                  <meta charset="utf-8">
+                  <style>
+                    body {
+                      margin: 0;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background: #111;
+                      min-height: 100vh;
+                      flex-direction: column;
+                      font-family: system-ui, -apple-system, sans-serif;
+                    }
+                    img {
+                      max-width: 100%;
+                      border-radius: 8px;
+                      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                    }
+                    p {
+                      text-align: center;
+                      color: #fff;
+                      margin-top: 20px;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <img src="${dataUrl}" alt="Twitter Contribution Graph">
+                  <p>Right-click on the image and select "Copy Image"</p>
+                </body>
+              </html>`
             );
-            newTab.document.title = `${searchUsername}'s Twitter Contributions`;
             newTab.document.close();
+
+            showNotification(
+              "Image opened in new tab for manual copying",
+              "success"
+            );
           } else {
             throw new Error("Couldn't open new tab for image");
           }
         } catch (fallbackErr) {
           console.error("Fallback copy also failed:", fallbackErr);
-          alert(
-            "Failed to copy image. Please try taking a screenshot instead."
+          showNotification(
+            "Failed to copy image. Try taking a screenshot instead.",
+            "error"
           );
         }
       }
-    } else {
-      console.error("Graph reference is null");
     }
   };
 
@@ -698,6 +705,29 @@ export const TwitterFeed = ({
 
         {/* Replace error display with the ErrorState component */}
         {error && <ErrorState error={error} />}
+
+        {/* Notification toast */}
+        {notification.visible && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-4 right-4 z-50 rounded-lg px-4 py-3 shadow-lg ${
+              notification.type === "success"
+                ? "bg-gradient-to-r from-green-500/90 to-emerald-600/90 text-white"
+                : "bg-gradient-to-r from-red-500/90 to-rose-600/90 text-white"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {notification.type === "success" ? (
+                <Check className="h-5 w-5" />
+              ) : (
+                <AlertTriangle className="h-5 w-5" />
+              )}
+              <p>{notification.message}</p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Enhanced data display - only show when data is available and not loading */}
         {data && !manualLoading && (
