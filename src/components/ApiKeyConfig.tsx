@@ -240,8 +240,8 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
                     Best for small creators:
                   </span>{" "}
                   This app works best for accounts with 250-1000 tweets. For
-                  larger accounts, consider using Twitter Analytics if you can't
-                  get additional credits.
+                  larger accounts, consider using Twitter Analytics if you
+                  can&apos;t get additional credits.
                 </li>
               </ul>
             </div>
