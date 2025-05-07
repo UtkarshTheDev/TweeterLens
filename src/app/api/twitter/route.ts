@@ -83,15 +83,42 @@ export async function GET(request: Request) {
       `Fetching tweets for ${normalizedUsername} with limit: ${limit}, maxPages: ${maxPages}, year: ${requestedYear}, forceRefresh: ${forceRefresh}`
     );
 
-    // Fetch user profile
-    const user = await fetchTwitterProfile(normalizedUsername, apiKey);
-    if (!user) {
-      console.log(`User not found: ${normalizedUsername}`);
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Try to get available years from cache first
     const cachedYears = await getAvailableYearsFromCache(normalizedUsername);
+
+    // Check if we have cached tweets before fetching the profile
+    const cachedTweets = await getCachedTweets(normalizedUsername);
+
+    // Only fetch profile if we need to (no cache or force refresh)
+    let user: TwitterUser | null = null;
+    if (!cachedTweets || forceRefresh) {
+      console.log(`Fetching profile for ${normalizedUsername}`);
+      user = await fetchTwitterProfile(normalizedUsername, apiKey);
+      if (!user) {
+        console.log(`User not found: ${normalizedUsername}`);
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+    } else if (
+      cachedTweets &&
+      cachedTweets.length > 0 &&
+      cachedTweets[0].user
+    ) {
+      // Use the user object from the first cached tweet if available
+      console.log(
+        `Using user profile from cached tweets for ${normalizedUsername}`
+      );
+      user = cachedTweets[0].user;
+    } else {
+      // If we have cached tweets but no user object, fetch the profile
+      console.log(
+        `Fetching profile for ${normalizedUsername} (not found in cache)`
+      );
+      user = await fetchTwitterProfile(normalizedUsername, apiKey);
+      if (!user) {
+        console.log(`User not found: ${normalizedUsername}`);
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+    }
 
     // Fetch tweets with optional parameters
     const fetchLog: string[] = [];
@@ -100,12 +127,18 @@ export async function GET(request: Request) {
 
     // Check if we should try to fetch from cache before making API calls
     // If forceRefresh is false and a specific year is requested
-    if (!forceRefresh && yearParam && yearParam !== "all") {
-      // Try to get tweets for the requested year from cache
-      const cachedYearTweets = await getCachedTweetsByYear(
-        normalizedUsername,
-        requestedYear
-      );
+    if (
+      !forceRefresh &&
+      yearParam &&
+      yearParam !== "all" &&
+      cachedTweets &&
+      cachedTweets.length > 0
+    ) {
+      // Filter cached tweets by year instead of making another cache call
+      const cachedYearTweets = cachedTweets.filter((tweet) => {
+        const tweetDate = new Date(tweet.tweet_created_at || tweet.created_at);
+        return tweetDate.getFullYear() === requestedYear;
+      });
 
       if (cachedYearTweets && cachedYearTweets.length > 0) {
         console.log(
@@ -141,15 +174,38 @@ export async function GET(request: Request) {
     }
 
     try {
-      tweets = await fetchTweetsFromUser(
-        normalizedUsername,
-        stopDate,
-        (collection) => {
-          fetchLog.push(`Fetched ${collection.length} tweets`);
-        },
-        maxPages,
-        forceRefresh,
-        apiKey
+      // If we already have cached tweets and we're not forcing a refresh, use them
+      if (
+        cachedTweets &&
+        cachedTweets.length > 0 &&
+        !forceRefresh &&
+        !yearParam
+      ) {
+        console.log(
+          `Using ${cachedTweets.length} cached tweets for ${normalizedUsername} without making API calls`
+        );
+        fetchLog.push(
+          `Using ${cachedTweets.length} cached tweets without API calls`
+        );
+        tweets = cachedTweets;
+      } else {
+        // Otherwise, fetch tweets from the API
+        console.log(`Fetching tweets from API for ${normalizedUsername}`);
+        tweets = await fetchTweetsFromUser(
+          normalizedUsername,
+          stopDate,
+          (collection) => {
+            fetchLog.push(`Fetched ${collection.length} tweets`);
+          },
+          maxPages,
+          forceRefresh,
+          apiKey
+        );
+      }
+
+      // Log the number of tweets fetched for debugging
+      console.log(
+        `Successfully fetched ${tweets.length} tweets for ${normalizedUsername}`
       );
     } catch (error) {
       // If this is a 402 error, we want to return the partial results
@@ -163,13 +219,11 @@ export async function GET(request: Request) {
         partialResultsError =
           "API subscription limit reached. Returning partial results from cache.";
 
-        // Try to get cached tweets
-        const cachedTweets = await getCachedTweets(normalizedUsername);
-
+        // Use the cached tweets we already fetched
         if (cachedTweets && cachedTweets.length > 0) {
           tweets = cachedTweets;
           fetchLog.push(
-            `Retrieved ${tweets.length} tweets from cache after payment error`
+            `Using ${tweets.length} tweets from cache after payment error`
           );
         } else {
           // No cached tweets available, rethrow error
@@ -227,6 +281,14 @@ export async function GET(request: Request) {
     if (partialResultsError) {
       response.payment_error = partialResultsError;
     }
+
+    // Log the response being sent to the frontend
+    console.log(`Sending response to frontend for ${normalizedUsername}:`, {
+      tweetCount: limitedTweets.length,
+      userIncluded: !!user,
+      logEntries: fetchLog.length,
+      yearsAvailable: availableYears.length,
+    });
 
     return NextResponse.json(response);
   } catch (error) {

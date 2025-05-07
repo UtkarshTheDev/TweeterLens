@@ -444,35 +444,31 @@ interface FetchFromSocialDataInput {
 }
 
 /**
- * Optimized function to fetch tweets from a user using a more efficient approach
- * based on the tweets.js implementation. This uses a loop-based approach instead of
- * recursion for better performance and easier debugging.
+ * Optimized function to fetch tweets from a user using the efficient approach
+ * from tweets.js implementation. This uses a simpler max_id based pagination
+ * to avoid duplicate API calls and reduce credit usage.
  */
 async function fetchFromSocialData(
   input: FetchFromSocialDataInput
 ): Promise<void> {
   // Initialize parameters
   const maxPages = input.maxPages || SAFETY_STOP;
-  let cursor: string | undefined = undefined;
   let maxId: string | undefined = input.initialMaxId; // Use initialMaxId if provided
   let previousMaxId: string | undefined = undefined;
   let pageCount = 0;
-  let consecutiveEmptyBatches = 0;
+
+  // Track API calls for debugging
+  let apiCallCount = 0;
 
   // If we're starting with a max_id, log it
   if (maxId) {
     console.log(`Starting fetch with initial max_id=${maxId}`);
   }
 
-  // Track processed requests to avoid duplicates
-  const processedRequests = new Set<string>();
-
-  // Track batch signatures to detect duplicate batches
-  const batchSignatures = new Set<string>();
-
-  // Main fetching loop
+  // Main fetching loop - simplified from tweets.js
   while (pageCount < maxPages) {
     pageCount++;
+    apiCallCount++;
 
     try {
       // Construct query based on whether we have a max_id
@@ -481,58 +477,21 @@ async function fetchFromSocialData(
         ? `from:${input.username} max_id:${maxId}`
         : `from:${input.username}`;
 
-      // Create a request signature to avoid duplicate requests
-      const requestSignature = `${query}-${cursor || ""}`;
-      if (processedRequests.has(requestSignature)) {
-        console.log(`Skipping duplicate request: ${requestSignature}`);
-
-        // If we're getting duplicate requests, we need to adjust our strategy
-        if (maxId === previousMaxId) {
-          console.log(`No progress with max_id (${maxId}), stopping`);
-          break;
-        }
-
-        // Try a different approach - find the smallest ID in our collection
-        if (input.collection.size > 0) {
-          const tweets = Array.from(input.collection.values());
-
-          // Sort tweets to find the smallest ID
-          const sortedTweets = tweets.sort((a, b) => {
-            const aId = BigInt(a.id_str || a.id);
-            const bId = BigInt(b.id_str || b.id);
-            return Number(aId - bId);
-          });
-
-          // Get the smallest ID and decrement it by 1 to fetch older tweets
-          const smallestId = sortedTweets[0].id_str || sortedTweets[0].id;
-          previousMaxId = maxId;
-          maxId = (BigInt(smallestId) - BigInt(1)).toString();
-          cursor = undefined; // Reset cursor when changing max_id
-
-          console.log(
-            `Changing strategy: using max_id=${maxId} to fetch older tweets`
-          );
-          continue; // Skip to next iteration with new max_id
-        } else {
-          break; // No tweets to work with, stop fetching
-        }
-      }
-
-      // Add current request to processed set
-      processedRequests.add(requestSignature);
-
-      // Build the URL for the social data API
-      let url = `${HOST_URL}${SEARCH_ENDPOINT}?query=${encodeURIComponent(
+      // Build the URL for the social data API - only using search endpoint
+      const url = `${HOST_URL}${SEARCH_ENDPOINT}?query=${encodeURIComponent(
         query
       )}&type=Latest`;
-      if (cursor) {
-        url += `&next_cursor=${cursor}`;
-      }
 
-      console.log(`Fetching tweets (page ${pageCount}/${maxPages}): ${url}`);
+      console.log(
+        `Fetching tweets (page ${pageCount}/${maxPages}, API call #${apiCallCount}): ${url}`
+      );
 
       // Make the API request using the API client
+      console.log(`Making API call to Social Data API: ${url}`);
+      const startTime = Date.now();
       const response = await getApiClient(input.apiKey).get(url);
+      const endTime = Date.now();
+      console.log(`API call completed in ${endTime - startTime}ms`);
       const status = response.status;
 
       // Handle non-200 status codes
@@ -541,6 +500,7 @@ async function fetchFromSocialData(
           console.log("Rate limit exceeded, waiting 15 seconds...");
           await new Promise((resolve) => setTimeout(resolve, 15000));
           pageCount--; // Don't count this as a page since we're retrying
+          apiCallCount--; // Don't count failed requests
           continue;
         } else if (status === 402) {
           // Handle payment required error - use what we've collected so far
@@ -563,85 +523,32 @@ async function fetchFromSocialData(
       // Parse the response
       const data = (await response.json()) as SuccessResponse;
       const tweets = data.tweets || [];
-      const nextCursor = data.next_cursor;
 
-      // Create a signature of this batch to detect duplicates
-      const batchSignature = tweets.map((t) => t.id_str).join(",");
-
-      // Check if we've seen this exact batch before (duplicate detection)
-      if (batchSignatures.has(batchSignature) && tweets.length > 0) {
-        console.log(
-          `Detected duplicate batch of tweets. Switching to max_id strategy.`
-        );
-
-        // Find the oldest tweet in this batch to use as max_id
-        const oldestTweetId = tweets.reduce((min, tweet) => {
-          const tweetId = BigInt(tweet.id_str);
-          return tweetId < BigInt(min) ? tweet.id_str : min;
-        }, tweets[0].id_str);
-
-        // Decrement by 1 to exclude this tweet in next request
-        const newMaxId = (BigInt(oldestTweetId) - BigInt(1)).toString();
-
-        console.log(`Switching to max_id=${newMaxId} to fetch older tweets`);
-        previousMaxId = maxId;
-        maxId = newMaxId;
-        cursor = undefined; // Reset cursor when using max_id
-
-        // Add this batch signature to our tracking sets
-        batchSignatures.add(batchSignature);
-        continue;
-      }
-
-      // Add this batch signature to our tracking sets
-      batchSignatures.add(batchSignature);
-
-      // Handle empty batches
+      // Handle empty batches - if we get no tweets, we're done
       if (tweets.length === 0) {
-        consecutiveEmptyBatches++;
-        console.log(`Empty batch received (${consecutiveEmptyBatches}/3)`);
-
-        if (consecutiveEmptyBatches >= 3) {
-          console.log("Too many consecutive empty batches, stopping");
-          break;
-        }
-
-        // If we have a cursor, try using it, but only once
-        if (nextCursor && !maxId) {
-          cursor = nextCursor;
-          continue;
-        }
-
-        // Otherwise, try max_id approach if we have tweets in our collection
-        if (input.collection.size > 0) {
-          const collectionTweets = Array.from(input.collection.values());
-
-          // Find the smallest ID to use as max_id
-          const smallestId = collectionTweets.reduce((min, tweet) => {
-            const tweetId = BigInt(tweet.id_str || tweet.id);
-            return tweetId < min ? tweetId : min;
-          }, BigInt(collectionTweets[0].id_str || collectionTweets[0].id));
-
-          previousMaxId = maxId;
-          maxId = (smallestId - BigInt(1)).toString();
-          cursor = undefined; // Reset cursor when changing max_id
-
-          console.log(`Empty batch strategy: using max_id=${maxId}`);
-          continue;
-        } else {
-          // No tweets and no cursor, we're done
-          break;
-        }
-      } else {
-        // Reset empty batches counter when we get tweets
-        consecutiveEmptyBatches = 0;
+        console.log("Empty batch received, no more tweets to fetch");
+        break;
       }
 
       // Process tweets and update our collection
       let newTweetsCount = 0;
 
+      // Find the smallest ID in this batch for next pagination
+      if (tweets.length === 0) {
+        // This shouldn't happen as we check for empty batches above
+        console.log("No tweets in batch to process");
+        break;
+      }
+
+      let smallestId = tweets[0].id_str;
+
       // Normalize and add tweet timestamps for consistency
       tweets.forEach((tweet: PartialTweet) => {
+        // Find smallest ID for pagination
+        if (BigInt(tweet.id_str) < BigInt(smallestId)) {
+          smallestId = tweet.id_str;
+        }
+
         // Normalize ID to always use id_str
         const idKey = tweet.id_str;
 
@@ -685,104 +592,23 @@ async function fetchFromSocialData(
         input.callback(array);
       }
 
-      // Determine next steps based on cursor, tweets, and new tweets count
-
-      // If we didn't get any new tweets in this batch, we need to change strategy
-      if (newTweetsCount === 0 && tweets.length > 0) {
-        console.log(
-          "No new tweets in this batch, switching to max_id strategy"
-        );
-
-        // Find the oldest tweet ID in this batch
-        const oldestTweetId = tweets.reduce((min, tweet) => {
-          const tweetId = BigInt(tweet.id_str);
-          return tweetId < BigInt(min) ? tweet.id_str : min;
-        }, tweets[0].id_str);
-
-        // Use max_id to get older tweets
-        previousMaxId = maxId;
-        maxId = (BigInt(oldestTweetId) - BigInt(1)).toString();
-
-        // If we're not making progress (same max_id), stop
-        if (previousMaxId === maxId) {
-          console.log(`No progress with max_id (${maxId}), stopping`);
-          break;
-        }
-
-        console.log(`Switching to max_id=${maxId} to fetch older tweets`);
-        cursor = undefined; // Reset cursor when using max_id
-        continue;
+      // If we didn't get any new tweets or we're not making progress, stop
+      if (newTweetsCount === 0) {
+        console.log("No new tweets in this batch, stopping");
+        break;
       }
 
-      // If we don't have a cursor, use max_id approach
-      if (!nextCursor) {
-        // No cursor means we need to use max_id approach to continue
-        console.log("No next_cursor in response, switching to max_id approach");
+      // Update max_id for next iteration - decrement by 1 to exclude current smallest ID
+      previousMaxId = maxId;
+      maxId = (BigInt(smallestId) - BigInt(1)).toString();
 
-        if (tweets.length > 0) {
-          // Find the smallest ID in this batch
-          const smallestId = tweets.reduce((min, tweet) => {
-            const tweetId = BigInt(tweet.id_str);
-            return tweetId < BigInt(min) ? tweet.id_str : min;
-          }, tweets[0].id_str);
-
-          previousMaxId = maxId;
-          maxId = (BigInt(smallestId) - BigInt(1)).toString();
-
-          // If we're not making progress (same max_id), stop
-          if (previousMaxId === maxId) {
-            console.log(`No progress with max_id (${maxId}), stopping`);
-            break;
-          }
-
-          console.log(`No cursor strategy: using max_id=${maxId}`);
-          cursor = undefined; // Reset cursor when changing max_id
-        } else {
-          // No tweets and no cursor, we're done
-          console.log("No more tweets to fetch, stopping");
-          break;
-        }
-      } else {
-        // We have a cursor, but only use it if we're getting new tweets
-        if (newTweetsCount > 0) {
-          cursor = nextCursor;
-          console.log(`Using next_cursor=${nextCursor} for pagination`);
-
-          // If we've been using max_id and now have a cursor with new tweets,
-          // we can try resetting max_id to see if cursor-based pagination works better
-          if (maxId && pageCount % 3 === 0) {
-            // Try every 3 pages
-            console.log(
-              "Temporarily resetting max_id to test cursor-based pagination"
-            );
-            // We'll reset max_id and let the algorithm handle it if needed
-            maxId = undefined;
-
-            // If we don't get new tweets in the next request, we'll revert back
-            // This is handled by the newTweetsCount === 0 check above
-          }
-        } else {
-          // We have a cursor but no new tweets, switch to max_id
-          console.log(
-            "Have cursor but no new tweets, switching to max_id strategy"
-          );
-
-          if (tweets.length > 0) {
-            // Find the oldest tweet ID in this batch
-            const oldestTweetId = tweets.reduce((min, tweet) => {
-              const tweetId = BigInt(tweet.id_str);
-              return tweetId < BigInt(min) ? tweet.id_str : min;
-            }, tweets[0].id_str);
-
-            // Use max_id to get older tweets
-            previousMaxId = maxId;
-            maxId = (BigInt(oldestTweetId) - BigInt(1)).toString();
-            cursor = undefined; // Reset cursor when using max_id
-
-            console.log(`Switching to max_id=${maxId} to fetch older tweets`);
-          }
-        }
+      // If we're not making progress (same max_id), stop
+      if (previousMaxId === maxId) {
+        console.log(`No progress with max_id (${maxId}), stopping`);
+        break;
       }
+
+      console.log(`Using max_id=${maxId} for next page`);
 
       // Small delay to avoid hammering the API
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -803,7 +629,7 @@ async function fetchFromSocialData(
   const finalArray = Array.from(input.collection.values());
   if (finalArray.length > 0) {
     console.log(
-      `Completed fetching. Saving final cache (${finalArray.length} tweets)`
+      `Completed fetching. Saving final cache (${finalArray.length} tweets) after ${apiCallCount} API calls`
     );
     await setCachedTweets(input.username, finalArray);
   }
@@ -811,11 +637,25 @@ async function fetchFromSocialData(
   if (pageCount >= maxPages) {
     console.log(`Reached maximum number of pages (${maxPages}), stopping`);
   }
+
+  // Log summary of API usage for credit tracking
+  console.log(`
+=== TWITTER FETCH SUMMARY ===
+Username: ${input.username}
+Total API calls made: ${apiCallCount}
+Total tweets collected: ${finalArray.length}
+Approximate credits used: ${
+    apiCallCount * 0.0002 * 20
+  } (${apiCallCount} calls × ~20 tweets per call × $0.0002 per tweet)
+============================
+  `);
 }
 
 /**
  * Fetch tweets from a user with optimized caching and pagination
  * This is the main function that should be called by external code
+ *
+ * Implements the efficient approach from tweets.js to avoid double credit usage
  */
 export async function fetchTweetsFromUser(
   name: string,
@@ -828,14 +668,28 @@ export async function fetchTweetsFromUser(
   // Normalize username for consistent caching
   const normalizedName = name.toLowerCase();
 
+  // Track API calls for debugging
+  let apiCallsMade = 0;
+
   try {
+    console.log(`Starting tweet fetch for ${normalizedName}`);
+
     // Clear cache if force refresh requested
     if (forceRefresh) {
+      console.log(
+        `Force refresh requested, clearing cache for ${normalizedName}`
+      );
       await clearCachedTweets(normalizedName);
     }
 
     // Try to get tweets from cache first
     const cached = forceRefresh ? null : await getCachedTweets(normalizedName);
+
+    if (cached && cached.length > 0) {
+      console.log(`Found ${cached.length} cached tweets for ${normalizedName}`);
+    } else {
+      console.log(`No cached tweets found for ${normalizedName}`);
+    }
 
     // Initialize collection with cached tweets if available
     const collection = new Map<string, PartialTweet>(
@@ -846,24 +700,47 @@ export async function fetchTweetsFromUser(
       }) ?? []
     );
 
-    // Get user profile to check total tweet count
-    const userProfile = await fetchTwitterProfile(normalizedName, apiKey);
-    const totalTweets = userProfile?.statuses_count || 0;
+    // Get user profile to check total tweet count - only make this API call if needed
+    let userProfile: TwitterUser | null = null;
+    let totalTweets = 0;
 
-    console.log(
-      `User ${normalizedName} has ${totalTweets} tweets, we have ${collection.size} cached`
-    );
+    // Only fetch profile if we need to determine if we have enough tweets
+    if (!cached || forceRefresh) {
+      userProfile = await fetchTwitterProfile(normalizedName, apiKey);
+      totalTweets = userProfile?.statuses_count || 0;
+      apiCallsMade++;
+
+      console.log(
+        `User ${normalizedName} has ${totalTweets} tweets, we have ${collection.size} cached`
+      );
+    } else {
+      console.log(
+        `Using cached tweets for ${normalizedName} without fetching profile`
+      );
+    }
 
     // If we have all tweets and not forcing refresh, return cached tweets
     // Add a small buffer (5%) to account for deleted tweets or API inconsistencies
-    const cacheThreshold = Math.floor(totalTweets * 0.95);
-    if (collection.size >= cacheThreshold && !forceRefresh && cached?.length) {
+    if (totalTweets > 0) {
+      const cacheThreshold = Math.floor(totalTweets * 0.95);
+      if (
+        collection.size >= cacheThreshold &&
+        !forceRefresh &&
+        cached?.length
+      ) {
+        console.log(
+          `Returning ${
+            collection.size
+          } cached tweets for ${normalizedName} (${Math.round(
+            (collection.size / totalTweets) * 100
+          )}% of profile count)`
+        );
+        return Array.from(collection.values());
+      }
+    } else if (collection.size > 0 && !forceRefresh) {
+      // If we don't know total tweets but have cached tweets, use them
       console.log(
-        `Returning ${
-          collection.size
-        } cached tweets for ${normalizedName} (${Math.round(
-          (collection.size / totalTweets) * 100
-        )}% of profile count)`
+        `Returning ${collection.size} cached tweets for ${normalizedName}`
       );
       return Array.from(collection.values());
     }
@@ -875,7 +752,7 @@ export async function fetchTweetsFromUser(
       maxPages ||
       Math.min(
         SAFETY_STOP, // Don't exceed safety limit
-        Math.max(200, Math.ceil(totalTweets / 15) + 50) // At least 200 pages, or calculated + buffer
+        Math.max(200, Math.ceil((totalTweets || 3200) / 15) + 50) // At least 200 pages, or calculated + buffer
       );
 
     console.log(`Using maxPages: ${effectiveMaxPages} to fetch tweets`);
@@ -919,16 +796,30 @@ export async function fetchTweetsFromUser(
     console.log(`Caching ${tweets.length} tweets for ${normalizedName}`);
 
     // Cache final result (already done in fetchFromSocialData, but ensure it's done)
-    if (tweets.length > collection.size) {
+    if (tweets.length > 0) {
       await setCachedTweets(normalizedName, tweets);
     }
 
     // Log coverage percentage
-    const coverage =
-      totalTweets > 0 ? Math.round((tweets.length / totalTweets) * 100) : 0;
-    console.log(
-      `Fetched ${tweets.length}/${totalTweets} tweets (${coverage}% coverage) for ${normalizedName}`
-    );
+    if (totalTweets > 0) {
+      const coverage = Math.round((tweets.length / totalTweets) * 100);
+      console.log(
+        `Fetched ${tweets.length}/${totalTweets} tweets (${coverage}% coverage) for ${normalizedName}`
+      );
+    } else {
+      console.log(`Fetched ${tweets.length} tweets for ${normalizedName}`);
+    }
+
+    // Log final summary for the entire operation
+    console.log(`
+=== TWITTER FETCH OPERATION COMPLETE ===
+Username: ${normalizedName}
+Total tweets fetched: ${tweets.length}
+API calls for profile: ${apiCallsMade}
+Cache status: ${cached ? "Used cached data" : "No cache used"}
+Force refresh: ${forceRefresh}
+======================================
+    `);
 
     return tweets;
   } catch (error) {

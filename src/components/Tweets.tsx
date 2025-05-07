@@ -191,13 +191,34 @@ interface TwitterStatsResponse {
 const fetchUserStats = async (username: string, apiKey: string) => {
   // Add a timestamp to prevent browser caching
   const timestamp = new Date().getTime();
-  const res = await fetch(
-    `/api/twitter/stats?username=${username}&apiKey=${apiKey}&_t=${timestamp}`
-  );
-  if (!res.ok) {
-    throw new Error("Failed to fetch user stats");
+  console.log(`Fetching stats for ${username} with timestamp ${timestamp}`);
+
+  try {
+    const res = await fetch(
+      `/api/twitter/stats?username=${username}&apiKey=${apiKey}&_t=${timestamp}`
+    );
+
+    if (!res.ok) {
+      console.error(
+        `Error response from stats API: ${res.status} ${res.statusText}`
+      );
+      throw new Error(
+        `Failed to fetch user stats: ${res.status} ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    console.log(`Successfully received stats data for ${username}:`, {
+      dataReceived: !!data,
+      totalPosts: data?.totalPosts,
+      hasContributionGraph: !!data?.contributionGraph,
+    });
+
+    return data;
+  } catch (error) {
+    console.error(`Error fetching stats for ${username}:`, error);
+    throw error;
   }
-  return res.json();
 };
 
 const generateYearOptions = (joinYear: number) => {
@@ -574,10 +595,21 @@ export const TwitterFeed = ({
       setError(null);
 
       console.log(`Manually fetching data for ${searchUsername}...`);
+
+      // Log the API key being used (first 5 chars only for security)
+      const apiKeyPrefix = apiKey.substring(0, 5) + "...";
+      console.log(`Using API key starting with ${apiKeyPrefix}`);
+
       const result = await fetchUserStats(searchUsername, apiKey);
 
       // Small delay to ensure UI updates properly
       await new Promise((resolve) => setTimeout(resolve, 300));
+
+      console.log(`Setting data state with result for ${searchUsername}:`, {
+        hasData: !!result,
+        totalPosts: result?.totalPosts,
+        hasContributionGraph: !!result?.contributionGraph,
+      });
 
       setData(result as TwitterStatsResponse);
       setManualLoading(false);

@@ -867,6 +867,18 @@ export async function GET(req: Request) {
       const cachedStats = await redis.get(statsCacheKey);
       if (cachedStats) {
         console.log(`Serving ${username}'s stats for ${year} from cache...`);
+
+        // Log the cached response being sent to the frontend
+        console.log(
+          `Sending cached stats response to frontend for ${username}:`,
+          {
+            totalPosts: cachedStats.totalPosts,
+            contributionGraphSize:
+              cachedStats.contributionGraph?.graph?.length || 0,
+            fromCache: true,
+          }
+        );
+
         return NextResponse.json(cachedStats);
       }
     } else {
@@ -912,6 +924,13 @@ export async function GET(req: Request) {
         CACHE_TTL.STATS / 3600
       }-hour TTL`
     );
+
+    // Log the response being sent to the frontend
+    console.log(`Sending stats response to frontend for ${username}:`, {
+      totalPosts: result.totalPosts,
+      contributionGraphSize: result.contributionGraph.graph.length,
+      hasViralTweet: !!result.viralTweet,
+    });
 
     return NextResponse.json(result);
   } catch (error: unknown) {
