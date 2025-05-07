@@ -192,7 +192,9 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
     const dates = tweets.map(
       (t) => new Date(t.tweet_created_at || t.created_at)
     );
-    const earliestDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    // Get the timestamp of each date and find the minimum
+    const timestamps = dates.map((d) => d.getTime());
+    const earliestDate = new Date(Math.min(...timestamps));
     joinYear = earliestDate.getFullYear();
   }
 
@@ -521,7 +523,8 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
       try {
         const match = sourceName.match(/>([^<]+)</);
         sourceName = match ? match[1] : "Twitter";
-      } catch (error) {
+      } catch (_) {
+        console.log("Error extracting source name:", _);        
         sourceName = "Twitter";
       }
 
@@ -550,8 +553,10 @@ function calculateUserStats(tweets: PartialTweet[], year: number) {
 
   // If it's the current year, use days passed so far; otherwise use full year
   const daysPassed = isCurrentYear
-    ? Math.floor((currentDate - new Date(year, 0, 1)) / (1000 * 60 * 60 * 24)) +
-      1
+    ? Math.floor(
+        (currentDate.getTime() - new Date(year, 0, 1).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ) + 1
     : daysInYear;
 
   const consistencyScore = parseFloat(
@@ -864,7 +869,9 @@ export async function GET(req: Request) {
 
     // Try to get cached stats first (unless refresh is requested)
     if (!refresh) {
-      const cachedStats = await redis.get(statsCacheKey);
+      const cachedStats = (await redis.get(
+        statsCacheKey
+      )) as TwitterStatsResponse | null;
       if (cachedStats) {
         console.log(`Serving ${username}'s stats for ${year} from cache...`);
 

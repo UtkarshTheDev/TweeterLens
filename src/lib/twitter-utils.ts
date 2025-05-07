@@ -58,7 +58,7 @@ export function getApiClient(apiKey: string) {
             errorMessage = "timeout";
           } else if (error) {
             // Try to extract status code if available
-            // @ts-ignore - ky error types are complex
+            // @ts-expect-error - ky error types are complex
             const status = error.response?.status || error.status;
             errorMessage = status
               ? `HTTP ${status} error`
@@ -834,7 +834,8 @@ Force refresh: ${forceRefresh}
         );
         return cachedTweets;
       }
-    } catch (cacheError) {
+    } catch (_) {
+      console.log("Error fetching cached tweets after error:", _);
       // Ignore cache errors
     }
 

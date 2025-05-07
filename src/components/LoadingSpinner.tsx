@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 
@@ -57,12 +57,15 @@ export function LoadingSpinner({
     "twitter" | "programming" | "advisory"
   >("twitter");
 
-  // Combine all facts and notes
-  const allFacts = {
-    twitter: twitterFacts,
-    programming: programmingFacts,
-    advisory: advisoryNotes,
-  };
+  // Combine all facts and notes - wrapped in useMemo to prevent recreation on every render
+  const allFacts = useMemo(
+    () => ({
+      twitter: twitterFacts,
+      programming: programmingFacts,
+      advisory: advisoryNotes,
+    }),
+    []
+  ); // Empty dependency array since these arrays are defined outside the component
 
   // Simplified fact rotation - just change every 4 seconds without fade effects
   useEffect(() => {
@@ -89,7 +92,7 @@ export function LoadingSpinner({
     return () => {
       clearInterval(factInterval);
     };
-  }, []); // Remove dependencies to prevent unnecessary re-renders
+  }, [currentFactType, allFacts]); // Include allFacts as a dependency since it's used in the effect
 
   // Get the current fact based on type and index
   const getCurrentFact = () => {

@@ -38,7 +38,7 @@ export function TwitterFeedWrapper() {
       console.log(`Setting username from URL: ${username}`);
       setSearchUsername(username);
     }
-  }, []);
+  }, [searchUsername]); // Added searchUsername as dependency to fix ESLint warning
 
   if (!isClient) {
     return (

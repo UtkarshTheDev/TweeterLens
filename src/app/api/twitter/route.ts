@@ -2,12 +2,10 @@ import {
   fetchTweetsFromUser,
   fetchTwitterProfile,
   getCachedTweets,
-  getCachedTweetsByYear,
   getAvailableYearsFromCache,
   TwitterUser,
   PartialTweet,
-  CACHE_TTL,
-  writeToCache,
+  // Removed unused imports: CACHE_TTL, writeToCache
 } from "@/lib/twitter-utils";
 import { NextResponse } from "next/server";
 

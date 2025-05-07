@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { cn } from "@/lib/utils";
-import { toPng } from "html-to-image";
+// toPng is imported dynamically when needed
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -304,7 +304,7 @@ export const TwitterFeed = ({
         setSearchUsername(initialUsername);
       }
     }
-  }, []); // Only run once on mount
+  }, [initialUsername]); // Added initialUsername as dependency to fix ESLint warning
 
   // Use effect to handle initialUsername changes after mount
   useEffect(() => {

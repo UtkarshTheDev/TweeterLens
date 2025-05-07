@@ -132,7 +132,7 @@ export const ApiKeyInput = ({ onApiKeySaved }: ApiKeyInputProps) => {
 
           {!isSaved && (
             <p className="text-xs text-gray-400 text-center">
-              Don't have an API key? Get one for free below
+              Don&apos;t have an API key? Get one for free below
             </p>
           )}
         </div>
