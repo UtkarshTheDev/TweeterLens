@@ -123,24 +123,27 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
         {/* Status and action messages */}
         <div className="flex flex-col items-center gap-2">
           {isSaved && (
-            <div className="flex items-center gap-2 text-xs text-green-400 justify-center">
-              <Check size={12} />
-              API key saved!
+            <div className="flex items-center gap-2 text-sm text-green-400 justify-center bg-green-900/20 py-1.5 px-3 rounded-full">
+              <Check size={16} />
+              API key saved successfully!
             </div>
           )}
 
           {isSaved && (
             <button
               onClick={onApiKeySaved}
-              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors py-1"
+              className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors py-1.5 px-4 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 mt-1"
             >
               Return to Search
             </button>
           )}
 
           {!isSaved && (
-            <p className="text-xs text-gray-400 text-center">
-              Don&apos;t have an API key? Get one for free below
+            <p className="text-sm text-gray-300 text-center">
+              Don&apos;t have an API key?{" "}
+              <span className="text-indigo-400">
+                Click below for setup instructions
+              </span>
             </p>
           )}
         </div>
@@ -149,14 +152,16 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
         <div className="text-center">
           <button
             onClick={() => setShowInstructions(!showInstructions)}
-            className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors py-1"
+            className="inline-flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300 transition-colors py-1.5 px-3 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20"
           >
             {showInstructions ? (
-              <ChevronUp className="h-3 w-3" />
+              <ChevronUp className="h-4 w-4" />
             ) : (
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className="h-4 w-4" />
             )}
-            {showInstructions ? "Hide instructions" : "How to get an API key"}
+            {showInstructions
+              ? "Hide setup instructions"
+              : "Show setup instructions & notes"}
           </button>
         </div>
 
@@ -167,26 +172,81 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-1 text-xs text-gray-300 bg-black/30 p-3 rounded-md space-y-2 border border-white/5"
+            className="mt-1 text-sm text-gray-300 bg-black/30 p-4 rounded-md space-y-3 border border-white/5"
           >
-            <ol className="list-decimal pl-5 space-y-1">
-              <li>
-                Visit{" "}
-                <a
-                  href="https://socialdata.tools"
-                  className="text-indigo-400 hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
+            <div className="space-y-3">
+              <h3 className="font-medium text-indigo-400 text-base">
+                How to Get Your API Key:
+              </h3>
+              <ol className="list-decimal pl-5 space-y-2">
+                <li>
+                  Visit{" "}
+                  <a
+                    href="https://socialdata.tools"
+                    className="text-indigo-400 hover:underline font-medium"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    SocialData.tools
+                  </a>
+                </li>
+                <li>Sign up for a free account</li>
+                <li>
+                  Navigate to{" "}
+                  <span className="font-medium">Dashboard → API Keys</span>
+                </li>
+                <li>Copy your API key</li>
+                <li>Paste it in the input field above</li>
+              </ol>
+            </div>
+
+            <div className="bg-indigo-900/20 p-3 rounded-md border border-indigo-500/20 space-y-2">
+              <h3 className="font-medium text-indigo-300 flex items-center gap-1.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-4 h-4"
                 >
-                  SocialData.tools
-                </a>
-              </li>
-              <li>Sign up for free</li>
-              <li>Go to Dashboard → API Keys</li>
-              <li>Copy your API key</li>
-              <li>Paste it here</li>
-            </ol>
-            <p className="text-gray-400 text-xs flex items-center justify-center gap-1 mt-2">
+                  <path
+                    fillRule="evenodd"
+                    d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Important Notes:
+              </h3>
+              <ul className="list-disc pl-5 space-y-2 text-gray-300">
+                <li>
+                  <span className="font-medium text-white">
+                    For accounts with 250+ tweets:
+                  </span>{" "}
+                  You may need additional credits. Contact SocialData.tools
+                  support and request additional credits based on your tweet
+                  count.
+                </li>
+                <li>
+                  <span className="font-medium text-white">
+                    Credit calculation:
+                  </span>{" "}
+                  SocialData API provides 1000 tweets for $0.20. Request{" "}
+                  <span className="text-indigo-300 font-medium">
+                    (Your total tweets ÷ 1000) × $0.20
+                  </span>{" "}
+                  in credits.
+                </li>
+                <li>
+                  <span className="font-medium text-white">
+                    Best for small creators:
+                  </span>{" "}
+                  This app works best for accounts with 250-1000 tweets. For
+                  larger accounts, consider using Twitter Analytics if you can't
+                  get additional credits.
+                </li>
+              </ul>
+            </div>
+
+            <p className="text-gray-400 text-xs flex items-center justify-center gap-1 mt-2 pt-2 border-t border-white/10">
               <Key className="h-3 w-3" />
               API access via{" "}
               <a
