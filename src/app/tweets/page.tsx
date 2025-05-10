@@ -11,6 +11,8 @@ import {
   Twitter,
   Loader2,
   ArrowLeft,
+  BarChart3,
+  Github,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Tweets } from "@/components/Tweets";
@@ -342,39 +344,69 @@ export default function TweetsPage() {
   };
 
   return (
-    <div className="relative min-h-screen">
-      {/* New background matching the main page */}
-      <div className="fixed inset-0 -z-10">
-        <div className="relative h-full w-full bg-black">
-          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
-          <div className="absolute left-0 right-0 top-[-10%] h-[1000px] w-[1000px] rounded-full bg-[radial-gradient(circle_400px_at_50%_300px,#fbfbfb36,#000)]"></div>
-        </div>
+    <div className="relative flex min-h-screen flex-col">
+      {/* Enhanced background with subtle grid pattern - same as home page */}
+      <div className="absolute top-0 left-0 right-0 -z-10 overflow-hidden h-[70vh]">
+        <div className="absolute left-0 right-0 top-[-5%] h-[800px] w-full rounded-full bg-[radial-gradient(ellipse_at_top,rgba(120,58,240,0.2),transparent_70%)]"></div>
+        {/* Subtle grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
       </div>
 
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-black/30 backdrop-blur-xl">
+      {/* Use the same Navbar component as home page */}
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/30 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Twitter className="h-8 w-8 text-indigo-400" />
-              <h1 className="bg-gradient-to-r from-indigo-300 to-blue-300 bg-clip-text text-2xl font-bold text-transparent">
-                Raw Tweets
+              <div className="relative h-12 w-12 flex items-center justify-center">
+                <div className="relative z-10 h-8 w-8 flex items-center justify-center">
+                  <BarChart3 className="h-7 w-7 text-indigo-400 drop-shadow-md" />
+                </div>
+              </div>
+              <h1 className="font-cabinet relative text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 text-2xl font-semibold tracking-normal drop-shadow-sm">
+                <span className="mr-1">Tweeter</span>
+                <span className="font-extrabold">Lens</span>
               </h1>
             </div>
 
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Link>
+            <div className="flex items-center gap-4">
+              {/* Back to Home Button */}
+              <Button
+                asChild
+                variant="outline"
+                className="flex items-center gap-3 h-9 rounded-full border-white/10 bg-black/50 px-5 py-2 text-sm text-white shadow-md hover:border-purple-500/50 hover:bg-black/70 transition-all"
+              >
+                <Link href="/" className="flex items-center gap-2.5">
+                  <ArrowLeft className="h-4 w-4 text-indigo-400" />
+                  <span>Back to Home</span>
+                </Link>
+              </Button>
+
+              {/* GitHub Button - Darker, more minimal */}
+              <Button
+                asChild
+                variant="outline"
+                className="flex items-center gap-3 h-10 rounded-full border-white/5 bg-black/70 px-5 py-4 text-sm font-medium text-white shadow-md hover:border-white/10 hover:bg-black/90 transition-all duration-300"
+              >
+                <a
+                  href="https://github.com/UtkarshTheDev/TweeterLens"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5"
+                >
+                  <Github className="h-4 w-4" />
+                  <span>GitHub</span>
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main>
+      <main className="flex-grow">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-6">Twitter Feed Visualizer</h1>
+          <h1 className="font-cabinet text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
+            Twitter Feed Visualizer
+          </h1>
 
           {!apiKey && (
             <Alert variant="destructive" className="mb-4">
@@ -385,8 +417,8 @@ export default function TweetsPage() {
             </Alert>
           )}
 
-          <div className="mb-6">
-            <div className="relative overflow-hidden rounded-xl shadow-2xl border border-white/10 bg-gradient-to-r from-black/90 to-zinc-900/70 backdrop-blur-xl">
+          <div className="mb-8">
+            <div className="relative overflow-hidden rounded-xl shadow-2xl border border-white/10 bg-black/40 backdrop-blur-xl">
               {/* Animated background */}
               <div className="absolute inset-0 -z-10 opacity-20">
                 <div
@@ -395,14 +427,12 @@ export default function TweetsPage() {
                 />
               </div>
 
-              <div className="p-4">
+              <div className="p-6">
                 <div className="flex flex-col gap-4">
-                  <div className="relative flex items-center gap-2">
+                  <div className="relative flex items-center gap-3">
                     <div className="relative flex-1">
-                      <div className="absolute left-3 flex items-center justify-center">
-                        <div className="p-1 bg-indigo-500/10 rounded-lg">
-                          <User className="h-4 w-4 text-indigo-400" />
-                        </div>
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
+                        <User className="h-5 w-5" />
                       </div>
                       <Input
                         type="text"
@@ -410,36 +440,36 @@ export default function TweetsPage() {
                         value={username}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
-                        className="w-full pl-12 bg-transparent border border-white/10 text-white placeholder:text-gray-400 focus:ring-1 focus:ring-indigo-500 text-lg py-2"
+                        className="w-full bg-black/40 text-[16px] border-white/10 text-white placeholder:text-gray-400 rounded-md h-14 pl-12 shadow-inner shadow-blue-900/5 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-0 focus:outline-none transition-all"
                         disabled={loading || isRefreshing}
                       />
                     </div>
 
                     <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <Button
                         onClick={handleSearch}
-                        className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium px-6 py-2.5 rounded-lg shadow-xl hover:shadow-indigo-500/25"
+                        className="h-14 relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white flex items-center gap-2 whitespace-nowrap text-[16px] px-7 transition-all border border-white/10 rounded-md"
                         disabled={loading || isRefreshing || !apiKey}
                       >
                         {loading ? (
                           <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <div className="h-5 w-5 border-2 border-white/30 border-t-white/80 rounded-full animate-spin" />
                             <span>Loading...</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
                             <span>Search</span>
-                            <ArrowRight className="h-4 w-4" />
+                            <ArrowRight className="h-5 w-5" />
                           </div>
                         )}
 
                         {/* Button shine effect */}
-                        <div className="absolute inset-0 -z-10 overflow-hidden rounded-lg">
+                        <div className="absolute inset-0 -z-10 overflow-hidden">
                           <div
-                            className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                            className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent"
                             style={{ transform: "rotate(-45deg)" }}
                           ></div>
                         </div>
@@ -462,7 +492,7 @@ export default function TweetsPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-6 rounded-xl border border-white/10 bg-gradient-to-r from-indigo-900/20 to-blue-900/20 backdrop-blur-sm"
+              className="mb-8 p-6 rounded-xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl"
             >
               <div className="flex flex-col gap-6">
                 <div className="flex gap-4 items-center">
@@ -473,11 +503,13 @@ export default function TweetsPage() {
                         ""
                       )}
                       alt={userProfile.name}
-                      className="w-16 h-16 rounded-full border border-white/20"
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 rounded-full border border-white/20 shadow-md"
                     />
                   )}
                   <div>
-                    <h3 className="text-xl font-bold text-white">
+                    <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
                       {userProfile.name}
                     </h3>
                     <p className="text-gray-400">@{userProfile.screen_name}</p>
@@ -490,7 +522,7 @@ export default function TweetsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium text-indigo-300 mb-3 flex items-center gap-2">
+                  <h3 className="font-cabinet text-lg font-medium text-indigo-300 mb-3 flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     Select a year to fetch tweets
                   </h3>
@@ -513,7 +545,7 @@ export default function TweetsPage() {
                         value={selectedYear}
                         onValueChange={handleYearChange}
                       >
-                        <SelectTrigger className="bg-black/50 border-white/10 text-white">
+                        <SelectTrigger className="bg-black/50 border-white/10 text-white h-14">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-indigo-400" />
                             <SelectValue placeholder="Select Year" />
@@ -526,16 +558,24 @@ export default function TweetsPage() {
                     </div>
 
                     <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <Button
                         onClick={handleFetchTweetsForYear}
-                        className="relative overflow-hidden w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
+                        className="h-14 relative overflow-hidden w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white flex items-center gap-2 whitespace-nowrap text-[16px] px-7 transition-all border border-white/10 rounded-md"
                       >
                         <div className="flex items-center gap-2">
-                          <Filter className="h-4 w-4" />
+                          <Filter className="h-5 w-5" />
                           <span>Fetch Tweets for {selectedYear}</span>
+                        </div>
+
+                        {/* Button shine effect */}
+                        <div className="absolute inset-0 -z-10 overflow-hidden">
+                          <div
+                            className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                            style={{ transform: "rotate(-45deg)" }}
+                          ></div>
                         </div>
                       </Button>
                     </motion.div>
@@ -547,7 +587,7 @@ export default function TweetsPage() {
 
           {/* Display selected year info */}
           {data && data.year && !yearSelectionPrompt && (
-            <div className="mb-4 text-gray-300 text-sm bg-black/30 p-2 rounded border border-white/5 flex items-center">
+            <div className="mb-6 text-gray-300 text-sm bg-black/40 p-3 rounded-lg border border-white/10 flex items-center shadow-md backdrop-blur-sm">
               <Calendar className="h-4 w-4 mr-2 text-indigo-400" />
               <span>
                 Showing tweets from:{" "}
@@ -566,25 +606,36 @@ export default function TweetsPage() {
 
           {error && (
             <div
-              className="bg-black/70 border border-red-400/30 text-red-400 px-4 py-3 rounded-lg relative mb-6"
+              className="bg-black/40 border border-red-500/30 text-red-400 px-5 py-4 rounded-xl relative mb-8 shadow-md backdrop-blur-sm"
               role="alert"
             >
-              <span className="block sm:inline">{error}</span>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                <span className="font-medium">{error}</span>
+              </div>
             </div>
           )}
 
           {loading && !isRefreshing ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Spinner className="h-8 w-8 mb-4" />
-              <p className="text-gray-500">Loading tweets...</p>
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="h-12 w-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+              <p className="text-indigo-300 font-medium">Loading tweets...</p>
+              <p className="text-gray-400 text-sm mt-2 max-w-md text-center">
+                This may take a moment depending on the number of tweets to
+                analyze
+              </p>
             </div>
           ) : isRefreshing ? (
-            <div className="opacity-50 pointer-events-none">
-              <Tweets data={data} />
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10">
-                <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-                  <Spinner className="h-8 w-8 mb-2" />
-                  <p>Refreshing tweets...</p>
+            <div className="relative">
+              <div className="opacity-50 pointer-events-none">
+                <Tweets data={data} />
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="bg-black/80 p-6 rounded-xl shadow-xl flex flex-col items-center backdrop-blur-md border border-white/10">
+                  <div className="h-10 w-10 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+                  <p className="text-indigo-300 font-medium">
+                    Refreshing tweets...
+                  </p>
                 </div>
               </div>
             </div>
@@ -594,57 +645,70 @@ export default function TweetsPage() {
 
               {/* Add "Load All Tweets" button if we haven't fetched all tweets */}
               {data.total_fetched < data.total_profile_tweets && (
-                <div className="mt-6 flex justify-center">
-                  <Button
-                    variant="outline"
-                    className="flex items-center gap-2"
-                    onClick={handleLoadAllTweets}
+                <div className="mt-8 flex justify-center">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <RefreshCw className="h-4 w-4" />
-                    <span>
-                      Load All Tweets (
-                      {data.total_profile_tweets - data.total_fetched}{" "}
-                      remaining)
-                    </span>
-                  </Button>
+                    <Button
+                      variant="outline"
+                      className="relative overflow-hidden flex items-center gap-2 h-12 rounded-lg border-white/10 bg-black/50 px-6 py-3 text-white shadow-md hover:border-purple-500/50 hover:bg-black/70 transition-all"
+                      onClick={handleLoadAllTweets}
+                    >
+                      <RefreshCw className="h-5 w-5 text-indigo-400" />
+                      <span>
+                        Load All Tweets (
+                        {data.total_profile_tweets - data.total_fetched}{" "}
+                        remaining)
+                      </span>
+                    </Button>
+                  </motion.div>
                 </div>
               )}
             </>
           ) : hasSearched && !yearSelectionPrompt ? (
-            <div className="text-center py-12 text-gray-500">
-              <p>No tweets found. Please check the username and try again.</p>
+            <div className="text-center py-16 bg-black/20 rounded-xl border border-white/5 backdrop-blur-sm">
+              <div className="max-w-md mx-auto">
+                <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-300 text-lg font-medium">
+                  No tweets found
+                </p>
+                <p className="text-gray-400 mt-2">
+                  Please check the username and try again. Make sure the account
+                  exists and is public.
+                </p>
+              </div>
             </div>
           ) : (
             !yearSelectionPrompt && (
-              <div className="text-center py-12 text-gray-500">
-                <p>Enter a Twitter username to view tweets.</p>
+              <div className="text-center py-16 bg-black/20 rounded-xl border border-white/5 backdrop-blur-sm">
+                <div className="max-w-md mx-auto">
+                  <Twitter className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
+                  <p className="text-gray-300 text-lg font-medium">
+                    Enter a Twitter username
+                  </p>
+                  <p className="text-gray-400 mt-2">
+                    Type a Twitter username in the search box above to view and
+                    analyze their tweets.
+                  </p>
+                </div>
               </div>
             )
           )}
         </div>
       </main>
 
-      <footer className="mt-auto border-t border-white/10 bg-black/50 py-6 backdrop-blur-xl">
+      <footer className="mt-auto border-t border-white/10 bg-black/30 py-6 backdrop-blur-xl">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
-            Built with ❤️ by{" "}
+            © {new Date().getFullYear()} TweeterLens by{" "}
             <a
               href="https://twitter.com/UtkarshTheDev"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-400 hover:underline"
+              className="text-purple-400 hover:underline"
             >
-              Utkarsh
-            </a>
-          </p>
-          <p className="text-gray-400">
-            <a
-              href="https://github.com/UtkarshTheDev/TweeterLens"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-indigo-400 hover:underline"
-            >
-              GitHub
+              @UtkarshTheDev
             </a>
           </p>
         </div>
