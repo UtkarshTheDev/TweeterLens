@@ -20,17 +20,20 @@ interface ApiKeyConfigProps {
 
 export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
   const [apiKey, setApiKey] = useState("");
+  const [originalApiKey, setOriginalApiKey] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     // Check if API key exists in localStorage
     const savedApiKey = localStorage.getItem("socialdataApiKey");
     if (savedApiKey) {
       setApiKey(savedApiKey);
+      setOriginalApiKey(savedApiKey);
       setIsSaved(true);
     }
   }, []);
@@ -42,8 +45,10 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
       // Simulate a brief loading state for better UX
       setTimeout(() => {
         localStorage.setItem("socialdataApiKey", apiKey);
+        setOriginalApiKey(apiKey);
         setIsSaved(true);
         setIsLoading(false);
+        setIsEditing(false);
         onApiKeySaved();
       }, 500);
     }
@@ -55,6 +60,16 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     }
+  };
+
+  const handleEditApiKey = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    // Restore the original API key
+    setApiKey(originalApiKey);
+    setIsEditing(false);
   };
 
   const toggleVisibility = () => {
@@ -75,7 +90,12 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter your API key"
-              className="w-full bg-black/40 text-[16px] border-white/10 text-white placeholder:text-gray-400 rounded-l-md rounded-r-none h-14 pl-12 pr-14 shadow-inner shadow-blue-900/5 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-0 focus:outline-none transition-all"
+              className={`w-full bg-black/40 text-[16px] border-white/10 text-white placeholder:text-gray-400 ${
+                isSaved && !isEditing
+                  ? "rounded-l-md"
+                  : "rounded-l-md rounded-r-none"
+              } h-14 pl-12 pr-14 shadow-inner shadow-blue-900/5 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-indigo-500/50 focus:border-indigo-500/50 focus:ring-0 focus:outline-none transition-all`}
+              readOnly={isSaved && !isEditing}
             />
             <button
               type="button"
@@ -86,7 +106,7 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
             </button>
           </div>
 
-          {!isSaved ? (
+          {!isSaved || isEditing ? (
             <Button
               type="button"
               onClick={handleSaveApiKey}
@@ -103,33 +123,85 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
               </span>
             </Button>
           ) : (
-            <Button
-              type="button"
-              onClick={handleCopyApiKey}
-              className="h-14 rounded-l-none rounded-r-md bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-600 hover:to-purple-600 text-white flex items-center gap-1 whitespace-nowrap text-[16px] px-7 transition-all border border-white/10"
-            >
-              {copySuccess ? (
-                <Check className="h-5 w-5" />
-              ) : (
-                <Copy className="h-5 w-5" />
-              )}
-              <span className="hidden sm:inline">
-                {copySuccess ? "Copied!" : "Copy"}
-              </span>
-            </Button>
+            <div className="flex">
+              <Button
+                type="button"
+                onClick={handleEditApiKey}
+                className="h-14 rounded-l-none bg-gradient-to-r from-indigo-700 to-indigo-600 hover:from-indigo-600 hover:to-indigo-500 text-white flex items-center gap-1 whitespace-nowrap text-[16px] px-5 transition-all border border-white/10 border-r-0"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+              <Button
+                type="button"
+                onClick={handleCopyApiKey}
+                className="h-14 rounded-r-md bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white flex items-center gap-1 whitespace-nowrap text-[16px] px-5 transition-all border border-white/10"
+              >
+                {copySuccess ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  <Copy className="h-5 w-5" />
+                )}
+                <span className="hidden sm:inline">
+                  {copySuccess ? "Copied!" : "Copy"}
+                </span>
+              </Button>
+            </div>
           )}
         </div>
 
         {/* Status and action messages */}
         <div className="flex flex-col items-center gap-2">
-          {isSaved && (
+          {isSaved && !isEditing && (
             <div className="flex items-center gap-2 text-sm text-green-400 justify-center bg-green-900/20 py-1.5 px-3 rounded-full">
               <Check size={16} />
               API key saved successfully!
             </div>
           )}
 
-          {isSaved && (
+          {isEditing && (
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-amber-400 justify-center bg-amber-900/20 py-1.5 px-3 rounded-full">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                Editing API key - Save when done
+              </div>
+
+              <button
+                onClick={handleCancelEdit}
+                className="text-sm text-gray-400 hover:text-gray-300 transition-colors py-1 px-3 rounded-full bg-gray-800/50 hover:bg-gray-700/50 mt-1"
+              >
+                Cancel Edit
+              </button>
+            </div>
+          )}
+
+          {isSaved && !isEditing && (
             <button
               onClick={onApiKeySaved}
               className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors py-1.5 px-4 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 mt-1"
