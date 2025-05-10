@@ -7,7 +7,6 @@ import { ChevronDown } from "lucide-react";
 import { ChevronUp } from "lucide-react";
 import { Save } from "lucide-react";
 import { Check } from "lucide-react";
-import { Copy } from "lucide-react";
 import { Eye } from "lucide-react";
 import { EyeOff } from "lucide-react";
 import { Key } from "lucide-react";
@@ -25,7 +24,6 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -51,14 +49,6 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
         setIsEditing(false);
         onApiKeySaved();
       }, 500);
-    }
-  };
-
-  const handleCopyApiKey = () => {
-    if (apiKey) {
-      navigator.clipboard.writeText(apiKey);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
     }
   };
 
@@ -123,44 +113,28 @@ export function ApiKeyConfig({ onApiKeySaved }: ApiKeyConfigProps) {
               </span>
             </Button>
           ) : (
-            <div className="flex">
-              <Button
-                type="button"
-                onClick={handleEditApiKey}
-                className="h-14 rounded-l-none bg-gradient-to-r from-indigo-700 to-indigo-600 hover:from-indigo-600 hover:to-indigo-500 text-white flex items-center gap-1 whitespace-nowrap text-[16px] px-5 transition-all border border-white/10 border-r-0"
+            <Button
+              type="button"
+              onClick={handleEditApiKey}
+              className="h-14 rounded-l-none rounded-r-md bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-600 hover:to-purple-600 text-white flex items-center gap-1 whitespace-nowrap text-[16px] px-7 transition-all border border-white/10"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                <span className="hidden sm:inline">Edit</span>
-              </Button>
-              <Button
-                type="button"
-                onClick={handleCopyApiKey}
-                className="h-14 rounded-r-md bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white flex items-center gap-1 whitespace-nowrap text-[16px] px-5 transition-all border border-white/10"
-              >
-                {copySuccess ? (
-                  <Check className="h-5 w-5" />
-                ) : (
-                  <Copy className="h-5 w-5" />
-                )}
-                <span className="hidden sm:inline">
-                  {copySuccess ? "Copied!" : "Copy"}
-                </span>
-              </Button>
-            </div>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <span className="hidden sm:inline">Edit API Key</span>
+            </Button>
           )}
         </div>
 
