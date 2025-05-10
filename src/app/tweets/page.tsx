@@ -9,12 +9,10 @@ import {
   Filter,
   AlertCircle,
   Twitter,
-  Loader2,
   ArrowLeft,
   BarChart3,
   Github,
 } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { Tweets } from "@/components/Tweets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
