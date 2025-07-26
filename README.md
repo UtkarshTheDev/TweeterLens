@@ -171,4 +171,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Built with ❤️ by [Utkarsh](https://twitter.com/UtkarshTheDev)
+Built with ❤️ by [Utkarsh Tiwari](https://twitter.com/UtkarshTheDev)
