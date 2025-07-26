@@ -1,21 +1,77 @@
+
 # TweeterLens 🔍
 
 ![TweeterLens Banner](./screenshots/banner.png)
 
-> **⚠️ SERVICE CURRENTLY UNAVAILABLE**
-> 
-> **TweeterLens is currently not functional due to X (formerly Twitter) restricting access to post data.** Our data provider, SocialData.tools, can no longer fetch X/Twitter posts due to these platform restrictions. We are monitoring the situation and will update this notice when service is restored.
-> 
-> **Please do not attempt to use this application at this time** - it will not work regardless of API key configuration.
+## ❌ Important Notice: Product Temporarily Unavailable
+
+### 🚫 Product Status: Not Working
+
+Thank you for checking out this project. This product was built to fetch full analytics for any X (formerly Twitter) profile, using the powerful and free-tier tool — **SocialData**.
 
 ---
 
-TweeterLens is a powerful Twitter analytics and visualization tool that helps you explore and analyze any Twitter profile with beautiful, interactive dashboards. Get detailed insights into posting patterns, engagement metrics, and content performance.
+## ⚙️ How It Worked (Previously)
+
+This tool used to:
+
+- Pull in post-level and profile-level analytics from public X accounts
+- Analyze data through the SocialData API  
+- Provide detailed insights like engagement rate, follower growth, post frequency, and more
+
+It was fully functional and verified to be working until recently.
+
+---
+
+## ❗ Why It's Not Working Now
+
+As of now, the core data source — **SocialData** — is not functioning properly.
+
+**Reason:** X (Twitter) has recently restricted external tools from accessing public post data, including API-level access.
+
+Due to this change, SocialData can no longer fetch posts or analytics from X profiles.
+
+Since my product is fully dependent on SocialData, it is currently **non-functional**.
+
+---
+
+## 🧠 What You Should Know
+
+- This issue is **not with my code or product**, but with the upstream tool (SocialData) being blocked by X.
+- This means **you won't get any analytics or data** if you try to use this tool right now.
+- I'm keeping the repo/code live for transparency, experimentation, and possible future fixes.
+
+---
+
+## 📅 Future Plans
+
+- I'm actively monitoring the situation with SocialData and exploring other possible data sources or workarounds.
+- If SocialData regains access or an alternative emerges, this product may become functional again.
+
+---
+
+## ✅ TL;DR
+
+> **This product is currently not working.**  
+> **Root Cause:** SocialData is blocked from accessing X posts.  
+> **No ETA yet.** Stay tuned.
+
+---
+
+If you have any questions or know of any working alternatives to SocialData, feel free to raise an issue or contact me directly.
+
+**Thank you for understanding 🙏**
+
+---
+
+## 📖 About TweeterLens (When It Was Working)
+
+TweeterLens was a powerful Twitter analytics and visualization tool that helped you explore and analyze any Twitter profile with beautiful, interactive dashboards. It provided detailed insights into posting patterns, engagement metrics, and content performance.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FUtkarshTheDev%2FTweeterLens)
 [![Follow on Twitter](https://img.shields.io/twitter/follow/UtkarshTheDev?style=social)](https://twitter.com/UtkarshTheDev)
 
-## ✨ Features
+### ✨ Features (When Working)
 
 - **Profile Analysis**: Enter any Twitter username to analyze their posting history and engagement patterns
 - **Detailed Analytics**: View engagement metrics, hashtag usage, and interactive heatmaps of activity patterns
@@ -26,37 +82,24 @@ TweeterLens is a powerful Twitter analytics and visualization tool that helps yo
 - **Shareable Stats**: Copy and download visualizations to share on social media
 - **Server-Side Rendering**: Optimized performance with Next.js SSR
 
-## 🚀 Live Demo
+### 🚀 Live Demo
 
 ~~Check out the live demo at [https://tweeterlens.vercel.app](https://tweeterlens.vercel.app)~~
 
-**Demo is currently unavailable** due to X/Twitter API restrictions. The application will not function until these restrictions are lifted.
+**Demo is currently unavailable** due to X/Twitter API restrictions.
 
-## 📊 Analytics Features
-
-TweeterLens provides comprehensive analytics including:
-
-- Posting consistency and streaks
-- Engagement efficiency metrics
-- Optimal posting time analysis
-- Content performance insights
-- Conversation metrics
-- Twitter personality type
-- Viral tweet identification
-- Source analysis (which apps are used for tweeting)
-
-## 🛠️ Tech Stack
+### 🛠️ Tech Stack
 
 - **Framework**: [Next.js 15](https://nextjs.org/)
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components**: [Shadcn UI](https://ui.shadcn.com/)
 - **State Management**: [TanStack Query](https://tanstack.com/query)
 - **Animation**: [Framer Motion](https://www.framer.com/motion/)
-- **Data Fetching**: [Social Data API](https://socialdata.tools)
+- **Data Fetching**: [Social Data API](https://socialdata.tools) *(currently non-functional)*
 - **Caching**: [Upstash Redis](https://upstash.com/)
 - **Deployment**: [Vercel](https://vercel.com)
 
-## 🔧 Getting Started
+## 🔧 Getting Started (For Future Reference)
 
 > **⚠️ IMPORTANT:** This application is currently non-functional due to X/Twitter API restrictions. The setup instructions below are preserved for when service is restored.
 
@@ -64,7 +107,7 @@ TweeterLens provides comprehensive analytics including:
 
 - [Node.js](https://nodejs.org/) (v18 or newer)
 - [Bun](https://bun.sh/) (recommended) or npm/yarn
-- [Social Data API](https://socialdata.tools) key (currently non-functional)
+- [Social Data API](https://socialdata.tools) key *(currently non-functional)*
 
 ### Installation
 
@@ -100,42 +143,6 @@ TweeterLens provides comprehensive analytics including:
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-## 🔑 Getting Your Social Data API Key
-
-> **⚠️ CURRENTLY NOT WORKING:** Due to X/Twitter's restrictions on data access, SocialData.tools can no longer fetch X/Twitter posts, making TweeterLens non-functional regardless of API key configuration.
-
-~~TweeterLens uses the Social Data API to fetch Twitter data. Here's how to get your API key:~~
-
-~~1. Visit [SocialData.tools](https://socialdata.tools) and sign up for a free account~~
-~~2. Navigate to **Dashboard → API Keys**~~
-~~3. Copy your API key~~
-~~4. Paste it in the API key input field in the TweeterLens app~~
-
-### Important Notes About API Credits
-
-- **Free tier**: The Social Data API provides a limited number of free credits
-- **Credit calculation**: The API provides 1000 tweets for $0.20
-- **For accounts with 250+ tweets**: You may need additional credits. Contact SocialData.tools support and request additional credits based on your tweet count
-- **Request formula**: Request `(Your total tweets ÷ 1000) × $0.20` in credits
-- **Best for small creators**: TweeterLens works best for accounts with 250-1000 tweets. For larger accounts, consider using Twitter Analytics if you can't get additional credits
-
-## 📝 Usage Tips
-
-1. **Enter a Twitter username** in the search box
-2. **Configure your API key** if prompted
-3. **Explore the analytics dashboard** with various metrics and visualizations
-4. **Share insights** by copying or downloading the visualizations
-5. **Switch between years** to analyze posting patterns over time
-
-## 🔄 Caching Behavior
-
-TweeterLens implements smart caching to minimize API calls:
-
-- Twitter profiles are cached for 8 hours
-- Tweets are cached for 8 hours
-- Tweet stats are cached for 8 hours
-- The app will show cached data when available and only fetch fresh data when necessary
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -152,21 +159,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgements
 
-- [Social Data API](https://socialdata.tools) for providing Twitter data access
+- [Social Data API](https://socialdata.tools) for providing Twitter data access *(when it was working)*
 - [Shadcn UI](https://ui.shadcn.com/) for the beautiful UI components
 - [Vercel](https://vercel.com) for hosting and deployment
 - [Next.js](https://nextjs.org/) for the amazing React framework
-
-## 📊 Current Status
-
-**Last Updated:** [Current Date]
-
-- **Service Status:** ❌ Unavailable
-- **Reason:** X/Twitter has restricted access to post data
-- **Data Provider:** SocialData.tools affected by platform restrictions
-- **ETA for Fix:** Unknown - depends on X/Twitter policy changes
-
-We are actively monitoring the situation and will update this repository when the service can be restored.
 
 ## 📧 Contact
 
