@@ -2,6 +2,14 @@
 
 ![TweeterLens Banner](./screenshots/banner.png)
 
+> **⚠️ SERVICE CURRENTLY UNAVAILABLE**
+> 
+> **TweeterLens is currently not functional due to X (formerly Twitter) restricting access to post data.** Our data provider, SocialData.tools, can no longer fetch X/Twitter posts due to these platform restrictions. We are monitoring the situation and will update this notice when service is restored.
+> 
+> **Please do not attempt to use this application at this time** - it will not work regardless of API key configuration.
+
+---
+
 TweeterLens is a powerful Twitter analytics and visualization tool that helps you explore and analyze any Twitter profile with beautiful, interactive dashboards. Get detailed insights into posting patterns, engagement metrics, and content performance.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FUtkarshTheDev%2FTweeterLens)
@@ -20,7 +28,9 @@ TweeterLens is a powerful Twitter analytics and visualization tool that helps yo
 
 ## 🚀 Live Demo
 
-Check out the live demo at [https://tweeterlens.vercel.app](https://tweeterlens.vercel.app)
+~~Check out the live demo at [https://tweeterlens.vercel.app](https://tweeterlens.vercel.app)~~
+
+**Demo is currently unavailable** due to X/Twitter API restrictions. The application will not function until these restrictions are lifted.
 
 ## 📊 Analytics Features
 
@@ -48,11 +58,13 @@ TweeterLens provides comprehensive analytics including:
 
 ## 🔧 Getting Started
 
+> **⚠️ IMPORTANT:** This application is currently non-functional due to X/Twitter API restrictions. The setup instructions below are preserved for when service is restored.
+
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v18 or newer)
 - [Bun](https://bun.sh/) (recommended) or npm/yarn
-- [Social Data API](https://socialdata.tools) key
+- [Social Data API](https://socialdata.tools) key (currently non-functional)
 
 ### Installation
 
@@ -90,12 +102,14 @@ TweeterLens provides comprehensive analytics including:
 
 ## 🔑 Getting Your Social Data API Key
 
-TweeterLens uses the Social Data API to fetch Twitter data. Here's how to get your API key:
+> **⚠️ CURRENTLY NOT WORKING:** Due to X/Twitter's restrictions on data access, SocialData.tools can no longer fetch X/Twitter posts, making TweeterLens non-functional regardless of API key configuration.
 
-1. Visit [SocialData.tools](https://socialdata.tools) and sign up for a free account
-2. Navigate to **Dashboard → API Keys**
-3. Copy your API key
-4. Paste it in the API key input field in the TweeterLens app
+~~TweeterLens uses the Social Data API to fetch Twitter data. Here's how to get your API key:~~
+
+~~1. Visit [SocialData.tools](https://socialdata.tools) and sign up for a free account~~
+~~2. Navigate to **Dashboard → API Keys**~~
+~~3. Copy your API key~~
+~~4. Paste it in the API key input field in the TweeterLens app~~
 
 ### Important Notes About API Credits
 
@@ -142,6 +156,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Shadcn UI](https://ui.shadcn.com/) for the beautiful UI components
 - [Vercel](https://vercel.com) for hosting and deployment
 - [Next.js](https://nextjs.org/) for the amazing React framework
+
+## 📊 Current Status
+
+**Last Updated:** [Current Date]
+
+- **Service Status:** ❌ Unavailable
+- **Reason:** X/Twitter has restricted access to post data
+- **Data Provider:** SocialData.tools affected by platform restrictions
+- **ETA for Fix:** Unknown - depends on X/Twitter policy changes
+
+We are actively monitoring the situation and will update this repository when the service can be restored.
 
 ## 📧 Contact
 
